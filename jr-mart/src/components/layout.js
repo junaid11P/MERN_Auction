@@ -39,3 +39,14 @@ export default function Navbar() {
         </nav>
     );
 }
+
+
+export function Footer() {
+    return(
+        <div className="text-center p-4 bg-light border-top">
+            <img src="/1.png" alt="..." width="30" className="me-2" />
+            © 2025 JR mart. All rights reserved.
+
+        </div>
+    )
+}

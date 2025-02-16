@@ -1,13 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import ReactDOM from 'react-dom/client';
-import Navbar from './components/layout';
+import Navbar, { Footer } from './components/layout';
 
 function App(){
   return(
     <Router>
       <div className="App">
         <Navbar />
+        <Footer />
       </div>
     </Router>
   )
