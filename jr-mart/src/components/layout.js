@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 
 export default function Navbar() {
@@ -17,7 +17,7 @@ export default function Navbar() {
                             <Link className="nav-link text-dark" aria-current="page" to="/">Home</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link text-dark" to="/link">Contact</Link>
+                            <Link className="nav-link text-dark" to="/contact">Contact</Link>
                         </li>
                         
                     </ul>
@@ -27,10 +27,10 @@ export default function Navbar() {
                                 Admin
                             </Link>
                             <ul className="dropdown-menu">
-                                <li><Link className="dropdown-item" to="/action">Product</Link></li>
-                                <li><Link className="dropdown-item" to="/another">Profile</Link></li>
+                                <li><Link className="dropdown-item" to="/product">Product</Link></li>
+                                <li><Link className="dropdown-item" to="/profile">Profile</Link></li>
                                 <li><hr className="dropdown-divider" /></li>
-                                <li><Link className="dropdown-item" to="/something">Logout</Link></li>
+                                <li><Link className="dropdown-item" to="/logout">Logout</Link></li>
                             </ul>
                         </li>
                     </ul>
