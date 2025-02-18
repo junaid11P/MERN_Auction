@@ -23,11 +23,10 @@ export default function Navbar() {
                     </ul>
                     <ul claaName="navbar-nav">
                     <li className="nav-item dropdown">
-                            <Link className="nav-link dropdown-toggle text-dark" to="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Admin
+                            <Link className="nav-link dropdown-toggle text-dark" to="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin
                             </Link>
                             <ul className="dropdown-menu">
-                                <li><Link className="dropdown-item" to="/product">Product</Link></li>
+                                <li><Link className="dropdown-item" to="/admin/products">Product</Link></li>
                                 <li><Link className="dropdown-item" to="/profile">Profile</Link></li>
                                 <li><hr className="dropdown-divider" /></li>
                                 <li><Link className="dropdown-item" to="/logout">Logout</Link></li>
