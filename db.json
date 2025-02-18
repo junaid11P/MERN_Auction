@@ -1,0 +1,28 @@
+{
+    "products": [
+        {
+            "id": 1,
+            "name": "Ice Cream",
+            "price": 60,
+            "category": "Dessert",
+            "description": "A frozen dessert made from cream and sugar, with added flavors and sweeteners.",
+            "image": "IceCream.jpg"
+        },
+        {
+            "id": 2,
+            "name": "Lunch Box",
+            "price": 200,
+            "category": "Lunch",
+            "description": "A packed meal that is prepared at home and eaten later in the day.",
+            "image": "Lunch Box.jpg"
+        },
+        {
+            "id": 3,
+            "name": "Snacks",
+            "price": 120,
+            "category": "Snack",
+            "description": "A small amount of food eaten between meals.",
+            "image": "Snacks.jpg"
+        }
+    ]
+}
