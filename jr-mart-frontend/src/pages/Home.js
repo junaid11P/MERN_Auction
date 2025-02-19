@@ -1,17 +1,10 @@
 export default function Home() {
     return (
-        <div className="container-fluid py-5" style={{ backgroundColor: '#734e4e' }}>
+        <div className="container-fluid py-5" style={{ backgroundColor: '#f0f0d5' }}>
             {/* Header Section */}
             <div className="container">
                 <div className="row mb-4">
-                    <div className="col-lg-8">
-                        <div className="alert alert-primary shadow-sm" role="alert">
-                            <h2 className="heading">Welcome to JR Mart! 🛒</h2>
-                            <h4 className="alert-heading">Everything in 10 MINIUTES 🛒</h4>
-                            <p> </p>
-                        </div>
-                    </div>
-                    <div className="col-lg-4">
+                <div className="col-lg-4">
                         <form className="d-flex">
                             <input 
                                 className="form-control me-2" 
@@ -24,6 +17,14 @@ export default function Home() {
                             </button>
                         </form>
                     </div>
+                    <div className="col-lg-8">
+                        <div className="alert alert-primary shadow-sm">
+                            <h2 className="heading">Welcome to JR Mart! 🛒</h2>
+                            <h5 className="alert-heading">Everything in 10 MINUTES </h5>
+                            <p> Best prices,and superfast delivery! </p>
+                        </div>
+                    </div>
+                    
                 </div>
 
                 {/* Featured Categories */}
