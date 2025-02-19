@@ -1,10 +1,33 @@
+import { Link } from "react-router-dom";
+
 export default function Home() {
     return (
         <div className="container-fluid py-5" style={{ backgroundColor: '#f0f0d5' }}>
             {/* Header Section */}
             <div className="container">
                 <div className="row mb-4">
-                <div className="col-lg-4">
+                    <div className="col-lg-8">
+                        <div className="alert shadow-sm" style={{ backgroundColor: 'white' }}>
+                            <div className="d-flex align-items-center">
+                                <div className="flex-grow-1">
+                                    <h2 className="heading">Everything in 10 MINUTES  🛒</h2>
+                                    <p className="mb-0">Best prices, and superfast delivery!</p>
+                                </div>
+                                <div className="ms-3">
+                                    <img 
+                                        src="/Free delivery.jpg" 
+                                        alt="Free Delivery" 
+                                        style={{
+                                            width: '220px',
+                                            height: 'auto',
+                                            objectFit: 'contain'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-lg-4">
                         <form className="d-flex">
                             <input 
                                 className="form-control me-2" 
@@ -16,13 +39,6 @@ export default function Home() {
                                 <i className="bi bi-search"></i> Search
                             </button>
                         </form>
-                    </div>
-                    <div className="col-lg-8">
-                        <div className="alert alert-primary shadow-sm">
-                            <h2 className="heading">Welcome to JR Mart! 🛒</h2>
-                            <h5 className="alert-heading">Everything in 10 MINUTES </h5>
-                            <p> Best prices,and superfast delivery! </p>
-                        </div>
                     </div>
                     
                 </div>

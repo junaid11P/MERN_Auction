@@ -1,40 +1,91 @@
 {
-  "products": [
+  "users": [
     {
       "id": 1,
-      "name": "Ice Cream",
-      "category": "Dessert",
-      "price": 90,
-      "description": "A frozen dessert made from cream and sugar, with added flavors and sweeteners.",
-      "imageFilename": "IceCream.jpg",
-      "createdAt": "2021-07-01T12:00:00Z"
+      "name": "John Doe",
+      "phoneNumber": "1234567890",
+      "email": "john@example.com",
+      "password": "hashedPassword123", 
+      "userType": "buyer",
+      "address": "123 Main St"
     },
     {
       "id": 2,
-      "name": "Lunch Box",
-      "category": "Lunch",
-      "price": 200,
-      "description": "A packed meal that is prepared at home and eaten later in the day.",
-      "imageFilename": "Lunch Box.jpg",
-      "createdAt": "2021-07-01T12:00:00Z"
+      "name": "Juned",
+      "phoneNumber": "8105238129",
+      "email": "junedjnr9632@gmail.com",
+      "password": "hashedPassword456", 
+      "userType": "seller",
+      "address": "ff1 A block Main St"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "HP i5",
+      "category": "Laptops",
+      "price": 50000,
+      "description": "HP i5 10th Gen 8GB RAM 512GB SSD 14-inch FHD Laptop (14s-dr2006TU)",
+      "imageFilename": "HP I5.png",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "sellerId": 2,
+      "status": "available"
+    },
+    {
+      "id": 2,
+      "name": "iPhone 13",
+      "category": "Mobiles",
+      "price": 100000,
+      "description": "Apple iPhone 13 Pro Max (256GB) - Gold",
+      "imageFilename": "iphone 13.png",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "sellerId": 2,
+      "status": "available"
     },
     {
       "id": 3,
-      "name": "Snacks",
-      "category": "Snack",
-      "price": 120,
-      "description": "A small amount of food eaten between meals.",
-      "imageFilename": "Snacks.jpg",
-      "createdAt": "2021-07-01T12:00:00Z"
+      "name": "Brown Shirt",
+      "category": "Fashion",
+      "price": 600,
+      "description": "Brown Shirt",
+      "imageFilename": "Brown Shirt.png",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "sellerId": 2,
+      "status": "available"
     },
     {
-      "name": "Pizza",
-      "category": "Lunch",
-      "price": 199,
-      "description": "Pizza is an Italian dish that's traditionally made with a wood-fired oven. It's typically made with a flat base of dough, tomato, cheese, and other ingredients. ",
-      "imageFilename": "1739953608898-italian-cuisine-6903774.jpg",
-      "createdAt": "2025-02-19T08:26:48.906Z",
-      "id": 4
+      "id": 4,
+      "name": "Banana",
+      "category": "Grocery",
+      "price": 120,
+      "description": "Banana is a fruit",
+      "imageFilename": "Banana.png",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "sellerId": 2,
+      "status": "available"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "buyerId": 1,
+      "sellerId": 2,
+      "productId": 1,
+      "status": "pending",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "paymentStatus": "pending",
+      "deliveryAddress": "123 Main St",
+      "amount": 50000
+    }
+  ],
+  "payments": [
+    {
+      "id": 1,
+      "orderId": 1,
+      "amount": 50000,
+      "status": "pending",
+      "createdAt": "2021-07-01T12:00:00Z",
+      "updatedAt": "2021-07-01T12:00:00Z"
     }
   ]
 }

@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 export default function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg bg-white border-bottom box-shadow" >
-            <div className="container">
+            <div className="container" >
                 <Link className="navbar-brand" to="/">
-                <img  src="/1.png" alt="..." width="30" className="me-2" />JR mart
+                <img  src="/1.png" alt="..." width="45" className="me-2" />JR mart
                 </Link>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>
@@ -29,6 +29,11 @@ export default function Navbar() {
                     <ul claaName="nav-item">
                     <Link className="nav-link text-dark" to="/Login">
                     <img  src="/person-circle.svg" alt="..." width="20" className="me-2" />Login
+                    </Link>
+                    </ul>
+                    <ul claaName="nav-item">
+                    <Link className="nav-link text-dark" to="/Cart">
+                    <img  src="/cart4.svg" alt="..." width="20" className="me-2" />
                     </Link>
                     </ul>
                 </div>

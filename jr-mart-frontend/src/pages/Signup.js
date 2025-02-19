@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export default function Login() {
+export default function Signup() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
+        name: '',
+        phoneNumber: '',
         email: '',
-        password: '',
-        userType: ''
+        userType: '',
+        address: ''
     });
-    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({
@@ -20,27 +21,11 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Fetch users from db.json
-            const response = await fetch('http://localhost:3001/users');
-            const users = await response.json();
-            
-            const user = users.find(u => 
-                u.email === formData.email && 
-                u.userType === formData.userType
-            );
-
-            if (user) {
-                // In production, use proper password validation
-                if (formData.userType === 'buyer') {
-                    navigate('/buyer/dashboard');
-                } else {
-                    navigate('/seller/dashboard');
-                }
-            } else {
-                setError('Invalid credentials');
-            }
+            // Add API call to register user
+            console.log('Registering user:', formData);
+            navigate('/login');
         } catch (error) {
-            setError('Login failed. Please try again.');
+            console.error('Error registering user:', error);
         }
     };
 
@@ -48,11 +33,10 @@ export default function Login() {
         <div className="container my-4">
             <div className="row align-items-center">
                 <div className="col-md-6">
-                    <h2>Login</h2>
+                    <h2>Sign Up</h2>
                     <p className="text-muted">
-                        New user? <Link to="/signup">Sign up here</Link>
+                        Already have an account? <Link to="/login">Login here</Link>
                     </p>
-                    {error && <div className="alert alert-danger">{error}</div>}
                     <form onSubmit={handleSubmit}>
                         <div className="mb-3">
                             <label className="form-label">Select User Type</label>
@@ -61,33 +45,65 @@ export default function Login() {
                                     <input
                                         type="radio"
                                         className="form-check-input"
+                                        id="buyer"
                                         name="userType"
                                         value="buyer"
                                         checked={formData.userType === 'buyer'}
                                         onChange={handleChange}
                                         required
                                     />
-                                    <label className="form-check-label">Buyer</label>
+                                    <label className="form-check-label" htmlFor="buyer">
+                                        Buyer
+                                    </label>
                                 </div>
                                 <div className="form-check">
                                     <input
                                         type="radio"
                                         className="form-check-input"
+                                        id="seller"
                                         name="userType"
                                         value="seller"
                                         checked={formData.userType === 'seller'}
                                         onChange={handleChange}
                                         required
                                     />
-                                    <label className="form-check-label">Seller</label>
+                                    <label className="form-check-label" htmlFor="seller">
+                                        Seller
+                                    </label>
                                 </div>
                             </div>
                         </div>
                         <div className="mb-3">
-                            <label className="form-label">Email</label>
+                            <label htmlFor="name" className="form-label">Full Name</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="phoneNumber" className="form-label">Phone Number</label>
+                            <input
+                                type="tel"
+                                className="form-control"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                pattern="[0-9]{10}"
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="email" className="form-label">Email</label>
                             <input
                                 type="email"
                                 className="form-control"
+                                id="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
@@ -95,21 +111,34 @@ export default function Login() {
                             />
                         </div>
                         <div className="mb-3">
-                            <label className="form-label">Password</label>
+                            <label htmlFor="password" className="form-label">Password</label>
                             <input
                                 type="password"
                                 className="form-control"
+                                id="password"
                                 name="password"
                                 value={formData.password}
+                                onChange={handleChange}
+                                pattern="[0-9,A-Z,a-z]{10}"
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="address" className="form-label">Address</label>
+                            <textarea
+                                className="form-control"
+                                id="address"
+                                name="address"
+                                value={formData.address}
                                 onChange={handleChange}
                                 required
                             />
                         </div>
-                        <button type="submit" className="btn btn-primary">Login</button>
+                        <button type="submit" className="btn btn-primary">Sign Up</button>
                     </form>
                 </div>
                 <div className="col-md-6 text-end">
-                    <img src="/Login.jpg" alt="Login" className="img-fluid" />
+                    <img src="/Signup.jpg" alt="Signup" className="img-fluid" style={{ maxWidth: '100%' }} />
                 </div>
             </div>
         </div>
