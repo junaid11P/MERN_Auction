@@ -1,31 +1,40 @@
 {
-    "products": [
-        {
-            "id": 1,
-            "name": "Ice Cream",
-            "category": "Dessert",
-            "price": 90,
-            "description": "A frozen dessert made from cream and sugar, with added flavors and sweeteners.",
-            "imageFilename": "IceCream.jpg",
-            "createdAt": "2021-07-01T12:00:00Z"
-        },
-        {
-            "id": 2,
-            "name": "Lunch Box",
-            "category": "Lunch",
-            "price": 200,
-            "description": "A packed meal that is prepared at home and eaten later in the day.",
-            "imageFilename": "Lunch Box.jpg",
-            "createdAt": "2021-07-01T12:00:00Z"
-        },
-        {
-            "id": 3,
-            "name": "Snacks",
-            "category": "Snack",
-            "price": 120,
-            "description": "A small amount of food eaten between meals.",
-            "imageFilename": "Snacks.jpg",
-            "createdAt": "2021-07-01T12:00:00Z"
-        }
-    ]
+  "products": [
+    {
+      "id": 1,
+      "name": "Ice Cream",
+      "category": "Dessert",
+      "price": 90,
+      "description": "A frozen dessert made from cream and sugar, with added flavors and sweeteners.",
+      "imageFilename": "IceCream.jpg",
+      "createdAt": "2021-07-01T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Lunch Box",
+      "category": "Lunch",
+      "price": 200,
+      "description": "A packed meal that is prepared at home and eaten later in the day.",
+      "imageFilename": "Lunch Box.jpg",
+      "createdAt": "2021-07-01T12:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Snacks",
+      "category": "Snack",
+      "price": 120,
+      "description": "A small amount of food eaten between meals.",
+      "imageFilename": "Snacks.jpg",
+      "createdAt": "2021-07-01T12:00:00Z"
+    },
+    {
+      "name": "Pizza",
+      "category": "Lunch",
+      "price": 199,
+      "description": "Pizza is an Italian dish that's traditionally made with a wood-fired oven. It's typically made with a flat base of dough, tomato, cheese, and other ingredients. ",
+      "imageFilename": "1739953608898-italian-cuisine-6903774.jpg",
+      "createdAt": "2025-02-19T08:26:48.906Z",
+      "id": 4
+    }
+  ]
 }
