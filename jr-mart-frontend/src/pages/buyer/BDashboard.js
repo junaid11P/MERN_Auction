@@ -82,7 +82,7 @@ export default function BDashboard() {
     return (
         <div className="container my-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>Welcome to Buyer Dashboard</h2>
+                <h2>Add items to the cart</h2>
                 <button 
                     className="btn btn-outline-primary d-flex align-items-center"
                     onClick={() => navigate('/buyer/Cart')}

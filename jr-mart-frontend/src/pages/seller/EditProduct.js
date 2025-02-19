@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 export default function EditProduct() {
     const params= useParams()
     const [validationErrors, setValidationErrors] = useState({});
+    const [products, setProducts] = useState([]);
 
     const navigate = useNavigate()
 
@@ -18,7 +19,7 @@ export default function EditProduct() {
         }
 
         try{
-            const response = await fetch('http://localhost:3000/products', {
+            const response = await fetch('http://localhost:3001/products', {
                 method: 'PATCH',
                 body: formData
             })
@@ -84,7 +85,7 @@ export default function EditProduct() {
                         </div>
                         <div className="row mb-3">
                             <div className="offset-sm-4 col-sm-8">
-                                <img src={"http://localhost:3000/images/" + "IceCream.jpg"} width="150" alt="..." className="img-thumbnail" />
+                                <img src={"http://localhost:3001/images/" + "IceCream.jpg"} width="150" alt="..." className="img-thumbnail" />
                             </div>
                         </div>
                         <div className="row mb-3">
@@ -108,7 +109,7 @@ export default function EditProduct() {
                             </div>
                         </div>
                         <div className="col-sm-4 d-grid">
-                            <Link className="btn btn-secondary" to="/admin/products" role="button">Cancel</Link>
+                            <Link className="btn btn-secondary" to="/seller/SDashboard" role="button">Cancel</Link>
                         </div>
                     </form>
             </div>

@@ -25,7 +25,7 @@ export default function SDashboard() {
                 <div className="col">
                     <button 
                         className="btn btn-primary"
-                        onClick={() => navigate('/seller/products/create')}
+                        onClick={() => navigate('/seller/CreateProduct')}
                     >
                         Add New Product
                     </button>
@@ -48,7 +48,7 @@ export default function SDashboard() {
                                         <p className="card-text">₹{product.price}</p>
                                         <button 
                                             className="btn btn-secondary me-2"
-                                            onClick={() => navigate(`/seller/products/edit/${product.id}`)}
+                                            onClick={() => navigate(`/seller/EditProduct/${product.id}`)}
                                         >
                                             Edit
                                         </button>

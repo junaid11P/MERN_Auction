@@ -33,6 +33,7 @@ function App() {
                     {/* Seller Routes */}
                     <Route path="/seller/dashboard" element={<SDashboard />} />
                     <Route path="/seller/CreateProduct" element={<CreateProduct />} />
+                    <Route path="/seller/ProductList" element={<ProductList />} />
                     <Route path="/seller/EditProduct/:id" element={<EditProduct />} />
                     
                     <Route path="*" element={<NotFound />} />
