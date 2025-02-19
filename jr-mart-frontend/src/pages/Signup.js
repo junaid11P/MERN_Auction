@@ -7,6 +7,7 @@ export default function Signup() {
         name: '',
         phoneNumber: '',
         email: '',
+        password: '',   
         userType: '',
         address: ''
     });
@@ -21,11 +22,40 @@ export default function Signup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Add API call to register user
-            console.log('Registering user:', formData);
-            navigate('/login');
+            // Get the current users to determine new ID
+            const usersResponse = await fetch('http://localhost:3001/users');
+            const users = await usersResponse.json();
+            const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+
+            // Prepare user data
+            const userData = {
+                id: newId,
+                name: formData.name,
+                phoneNumber: formData.phoneNumber,
+                email: formData.email,
+                password: formData.password, // In production, use password hashing
+                userType: formData.userType,
+                address: formData.address
+            };
+
+            // Send POST request to json-server
+            const response = await fetch('http://localhost:3001/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+
+            if (response.ok) {
+                alert('Registration successful!');
+                navigate('/login');
+            } else {
+                throw new Error('Registration failed');
+            }
         } catch (error) {
             console.error('Error registering user:', error);
+            alert('Registration failed. Please try again.');
         }
     };
 
@@ -119,7 +149,7 @@ export default function Signup() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                pattern="[0-9,A-Z,a-z]{10}"
+                                pattern=".{6,}"
                                 required
                             />
                         </div>
@@ -136,9 +166,6 @@ export default function Signup() {
                         </div>
                         <button type="submit" className="btn btn-primary">Sign Up</button>
                     </form>
-                </div>
-                <div className="col-md-6 text-end">
-                    <img src="/Signup.jpg" alt="Signup" className="img-fluid" style={{ maxWidth: '100%' }} />
                 </div>
             </div>
         </div>

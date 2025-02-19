@@ -6,13 +6,14 @@ import Home from './pages/Home';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import ProductList from './pages/admin/products/ProductList';
-import CreateProduct from './pages/admin/products/CreateProduct';
-import EditProduct from './pages/admin/products/EditProduct';
+import ProductList from './pages/seller/ProductList';
+import CreateProduct from './pages/seller/CreateProduct';
+import EditProduct from './pages/seller/EditProduct';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import BDashboard from './pages/buyer/BDashboard';
 import SDashboard from './pages/seller/SDashboard';
+import Cart from './pages/buyer/Cart';
 
 function App() {
     return (
@@ -27,11 +28,12 @@ function App() {
                     
                     {/* Buyer Routes */}
                     <Route path="/buyer/dashboard" element={<BDashboard />} />
+                    <Route path="/buyer/Cart" element={<Cart />} />
                     
                     {/* Seller Routes */}
                     <Route path="/seller/dashboard" element={<SDashboard />} />
-                    <Route path="/seller/products/create" element={<CreateProduct />} />
-                    <Route path="/seller/products/edit/:id" element={<EditProduct />} />
+                    <Route path="/seller/CreateProduct" element={<CreateProduct />} />
+                    <Route path="/seller/EditProduct/:id" element={<EditProduct />} />
                     
                     <Route path="*" element={<NotFound />} />
                 </Routes>

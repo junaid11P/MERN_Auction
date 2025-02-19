@@ -5,7 +5,7 @@
       "name": "John Doe",
       "phoneNumber": "1234567890",
       "email": "john@example.com",
-      "password": "hashedPassword123", 
+      "password": "hashedPassword123",
       "userType": "buyer",
       "address": "123 Main St"
     },
@@ -14,9 +14,18 @@
       "name": "Juned",
       "phoneNumber": "8105238129",
       "email": "junedjnr9632@gmail.com",
-      "password": "hashedPassword456", 
+      "password": "hashedPassword456",
       "userType": "seller",
       "address": "ff1 A block Main St"
+    },
+    {
+      "id": 3,
+      "name": "Junaid",
+      "phoneNumber": "9483936515",
+      "email": "juned8105@gmaail.com",
+      "password": "@8105junnio",
+      "userType": "buyer",
+      "address": "Ramachandrapura"
     }
   ],
   "products": [
@@ -26,7 +35,7 @@
       "category": "Laptops",
       "price": 50000,
       "description": "HP i5 10th Gen 8GB RAM 512GB SSD 14-inch FHD Laptop (14s-dr2006TU)",
-      "imageFilename": "HP I5.png",
+      "imageFilename": "/jr-mart-backend/public/images/HP I5.png",
       "createdAt": "2021-07-01T12:00:00Z",
       "sellerId": 2,
       "status": "available"
@@ -37,7 +46,7 @@
       "category": "Mobiles",
       "price": 100000,
       "description": "Apple iPhone 13 Pro Max (256GB) - Gold",
-      "imageFilename": "iphone 13.png",
+      "imageFilename": "/jr-mart-backend/public/images/iphone 13.png",
       "createdAt": "2021-07-01T12:00:00Z",
       "sellerId": 2,
       "status": "available"
@@ -48,7 +57,7 @@
       "category": "Fashion",
       "price": 600,
       "description": "Brown Shirt",
-      "imageFilename": "Brown Shirt.png",
+      "imageFilename": "/jr-mart-backend/public/images/Brown Shirt.png",
       "createdAt": "2021-07-01T12:00:00Z",
       "sellerId": 2,
       "status": "available"
@@ -59,7 +68,7 @@
       "category": "Grocery",
       "price": 120,
       "description": "Banana is a fruit",
-      "imageFilename": "Banana.png",
+      "imageFilename": "/jr-mart-backend/public/images/Banana.png",
       "createdAt": "2021-07-01T12:00:00Z",
       "sellerId": 2,
       "status": "available"
@@ -86,6 +95,22 @@
       "status": "pending",
       "createdAt": "2021-07-01T12:00:00Z",
       "updatedAt": "2021-07-01T12:00:00Z"
+    }
+  ],
+  "cart": [
+    {
+      "productId": 1,
+      "quantity": 1,
+      "price": 50000,
+      "addedAt": "2025-02-19T17:40:59.082Z",
+      "id": 1
+    },
+    {
+      "productId": 2,
+      "quantity": 1,
+      "price": 100000,
+      "addedAt": "2025-02-19T17:41:06.067Z",
+      "id": 2
     }
   ]
 }
