@@ -72,14 +72,19 @@ export default function ProductList() {
                                     <td>{product.price}$</td>
                                     <td>
                                         <img
-                                            src={"http://localhost:3001/images/" + product.imageFilename}
-                                            width="80" alt="..."
+                                            src={`http://localhost:3001/images/${product.imageFilename || 'default.jpg'}`}
+                                            width="80"
+                                            alt={product.name}
+                                            onError={(e) => {
+                                                console.error(`Failed to load image for product ${product.id}`);
+                                                e.target.src = 'path-to-fallback-image.jpg'; // Add a fallback image
+                                            }}
                                         />
                                     </td>
                                     <td>{product.createdAt.slice(0, 10)}</td>
                                     <td style={{ width: "10px", whiteSpace: "nowrap" }}>
                                         <Link className='btn btn-primary btn-sm me-1'
-                                            to={"/seller/EditProduct1" + product.id}>Edit</Link>
+                                            to={"/seller/EditProduct" + product.id}>Edit</Link>
                                         <button type="button" className="btn btn-danger btn-sm">Delete</button>
                                     </td>
                                 </tr>

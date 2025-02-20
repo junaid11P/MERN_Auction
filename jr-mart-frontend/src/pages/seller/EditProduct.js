@@ -13,34 +13,28 @@ export default function EditProduct() {
         
         const formData = new FormData(event.target);
         const product = Object.fromEntries(formData.entries());
-        if(!product.name || !product.category || !product.price || !product.description ) {
+
+        if(!product.name || !product.category || !product.price || !product.description) {
             alert("Please fill all fields");
             return;
         }
 
-        try{
-            const response = await fetch('http://localhost:3001/products', {
+        try {
+            const response = await fetch(`http://localhost:3001/products/${params.id}`, {
                 method: 'PATCH',
-                body: formData
-            })
+                body: formData // Send FormData directly
+            });
 
-            const data = await response.json();
             if(response.ok){
-                //Product created successfully
-                navigate('/admin/products');
+                alert("Product updated successfully!");
+                navigate('/seller/ProductList');
+            } else {
+                throw new Error('Failed to update product');
             }
-            else if(response.status === 400){
-                setValidationErrors(data)
-            }
-            else{
-                alert("Unable to create product");
-            }
-
+        } catch(error) {
+            console.error('Error updating product:', error);
+            alert("Unable to update product. Please try again.");
         }
-        catch(error){
-            alert("Unable to connect to server");
-        }
-
     }
 
     return (
@@ -109,7 +103,7 @@ export default function EditProduct() {
                             </div>
                         </div>
                         <div className="col-sm-4 d-grid">
-                            <Link className="btn btn-secondary" to="/seller/SDashboard" role="button">Cancel</Link>
+                            <Link className="btn btn-secondary" to="/seller/dashboard" role="button">Cancel</Link>
                         </div>
                     </form>
             </div>

@@ -18,31 +18,13 @@ export default function CreateProduct() {
         }
 
         try {
-            // Create product data
-            const productData = {
-                name: product.name,
-                category: product.category,
-                price: parseFloat(product.price),
-                description: product.description,
-                imageFilename: `/images/${product.image.name}`, // Store the path
-                createdAt: new Date().toISOString(),
-                sellerId: 2, // Replace with actual seller ID from auth
-                status: "available"
-            };
-
-            // Send product data to json-server
+            // Send form data directly to server
             const response = await fetch('http://localhost:3001/products', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(productData)
+                body: formData // Send FormData directly
             });
 
             if(response.ok){
-                // Handle file upload separately if needed
-                // In a real app, you'd upload the image to a storage service
-                
                 alert("Product created successfully!");
                 navigate('/seller/ProductList');
             } else {

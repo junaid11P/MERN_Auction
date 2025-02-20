@@ -3,9 +3,9 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "json-server": "^0.17.4",
-    "multer": "^1.4.5-lts.1",
-    "cors": "^2.8.5"
+    "multer": "^1.4.5-lts.1"
   },
   "name": "jr-mart-api",
   "version": "1.0.0",
