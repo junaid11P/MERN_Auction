@@ -129,6 +129,27 @@
       "price": 399,
       "addedAt": "2025-02-19T19:03:52.271Z",
       "id": 4
+    },
+    {
+      "productId": 3,
+      "quantity": 2,
+      "price": 199,
+      "addedAt": "2025-02-20T14:32:45.519Z",
+      "id": 5
+    },
+    {
+      "productId": 4,
+      "quantity": 1,
+      "price": 399,
+      "addedAt": "2025-02-20T14:33:05.969Z",
+      "id": 6
+    },
+    {
+      "productId": 2,
+      "quantity": 1,
+      "price": 120,
+      "addedAt": "2025-02-20T15:16:27.376Z",
+      "id": 7
     }
   ]
 }

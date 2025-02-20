@@ -56,12 +56,15 @@ export default function EditProduct() {
                                 <span className="text-danger">{validationErrors.name}</span>
                             </div>
                         </div>
-                        <div className="row mb-3">
+                        <div className="col-sm-8">
                             <label className="col-s-4 col-form-label">Category</label>
-                            <div className="col-sm-8">
-                                <input className="form-control" name="category" />
-                                <span className="text-danger">{validationErrors.category}</span>
-                            </div>
+                            <select className="form-control" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Laptop">Laptop</option>
+                                <option value="Fashion">Fashion</option>
+                                <option value="Mobiles">Mobiles</option>
+                                <option value="Grocery">Grocery</option>
+                            </select>
                         </div>
                         <div className="row mb-3">
                             <label className="col-s-4 col-form-label">Price</label>

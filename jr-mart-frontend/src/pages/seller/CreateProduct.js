@@ -68,7 +68,7 @@ export default function CreateProduct() {
                                 <option value="">Select Category</option>
                                 <option value="Laptop">Laptop</option>
                                 <option value="Fashion">Fashion</option>
-                                <option value="Mobiles">Home</option>
+                                <option value="Mobiles">Mobiles</option>
                                 <option value="Grocery">Grocery</option>
                             </select>
                         </div>

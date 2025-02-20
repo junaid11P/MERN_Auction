@@ -1,5 +1,4 @@
 import React from 'react';
-
 import ReactDOM from 'react-dom/client';
 import Navbar, { Footer } from './components/layout';
 import Home from './pages/Home';
@@ -14,6 +13,9 @@ import Signup from './pages/Signup';
 import BDashboard from './pages/buyer/BDashboard';
 import SDashboard from './pages/seller/SDashboard';
 import Cart from './pages/buyer/Cart';
+import BProfile from './pages/buyer/BProfile';
+import SProfile from './pages/seller/SProfile';
+import Checkout from './pages/buyer/checkout';  // Updated import path
 
 function App() {
     return (
@@ -29,12 +31,15 @@ function App() {
                     {/* Buyer Routes */}
                     <Route path="/buyer/dashboard" element={<BDashboard />} />
                     <Route path="/buyer/Cart" element={<Cart />} />
+                    <Route path="/buyer/profile" element={<BProfile />} />
+                    <Route path="/buyer/checkout" element={<Checkout />} />
                     
                     {/* Seller Routes */}
                     <Route path="/seller/dashboard" element={<SDashboard />} />
                     <Route path="/seller/CreateProduct" element={<CreateProduct />} />
                     <Route path="/seller/ProductList" element={<ProductList />} />
                     <Route path="/seller/EditProduct/:id" element={<EditProduct />} />
+                    <Route path="/seller/profile" element={<SProfile />} />
                     
                     <Route path="*" element={<NotFound />} />
                 </Routes>
