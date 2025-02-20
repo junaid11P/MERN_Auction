@@ -132,7 +132,7 @@
     },
     {
       "productId": 3,
-      "quantity": 2,
+      "quantity": 6,
       "price": 199,
       "addedAt": "2025-02-20T14:32:45.519Z",
       "id": 5
@@ -146,7 +146,7 @@
     },
     {
       "productId": 2,
-      "quantity": 1,
+      "quantity": 2,
       "price": 120,
       "addedAt": "2025-02-20T15:16:27.376Z",
       "id": 7
