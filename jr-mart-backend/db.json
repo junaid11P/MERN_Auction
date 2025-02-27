@@ -4,8 +4,8 @@
       "id": 1,
       "name": "John Doe",
       "phoneNumber": "1234567890",
-      "email": "john@example.com",
-      "password": "hashedPassword123",
+      "email": "user@example.com",
+      "password": "user@123",
       "userType": "buyer",
       "address": "123 Main St"
     },
@@ -14,7 +14,7 @@
       "name": "Juned",
       "phoneNumber": "8105238129",
       "email": "junedjnr9632@gmail.com",
-      "password": "hashedPassword456",
+      "password": "juned@123",
       "userType": "seller",
       "address": "ff1 A block Main St"
     },
@@ -22,8 +22,8 @@
       "id": 3,
       "name": "Junaid",
       "phoneNumber": "9483936515",
-      "email": "juned8105@gmaail.com",
-      "password": "@8105junnio",
+      "email": "juned8105@gmail.com",
+      "password": "@8105junni",
       "userType": "buyer",
       "address": "Ramachandrapura"
     }
