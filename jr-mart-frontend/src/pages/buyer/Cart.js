@@ -6,52 +6,77 @@ export default function Cart() {
     const [cartItems, setCartItems] = useState([]);
     const [products, setProducts] = useState({});
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch cart items
-                const cartResponse = await fetch('http://localhost:3001/cart');
-                const cartData = await cartResponse.json();
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user?._id || user.userType !== 'buyer') {
+                    navigate('/login');
+                    return;
+                }
 
-                // Fetch products
-                const productsResponse = await fetch('http://localhost:3001/products');
-                const productsData = await productsResponse.json();
+                const [cartResponse, productsResponse] = await Promise.all([
+                    fetch(`http://localhost:3001/api/cart/${user._id}`, {
+                        headers: { 'Content-Type': 'application/json' }
+                    }),
+                    fetch('http://localhost:3001/api/products', {
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                ]);
 
-                // Create products lookup object
-                const productsMap = productsData.reduce((acc, product) => {
-                    acc[product.id] = product;
+                if (!cartResponse.ok || !productsResponse.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const [cartData, productsData] = await Promise.all([
+                    cartResponse.json(),
+                    productsResponse.json()
+                ]);
+
+                const productsMap = productsData.products.reduce((acc, product) => {
+                    acc[product._id] = product;
                     return acc;
                 }, {});
 
-                setCartItems(cartData);
+                setCartItems(cartData.cart?.products || []);
                 setProducts(productsMap);
             } catch (error) {
-                console.error('Error fetching cart data:', error);
+                console.error('Error:', error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
+    }, [navigate]);
 
-    const removeFromCart = async (cartItemId) => {
+    const removeFromCart = async (productId) => {
         try {
-            await fetch(`http://localhost:3001/cart/${cartItemId}`, {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await fetch(`http://localhost:3001/api/cart/${user._id}/product/${productId}`, {
                 method: 'DELETE'
             });
-            setCartItems(cartItems.filter(item => item.id !== cartItemId));
+
+            if (response.ok) {
+                setCartItems(cartItems.filter(item => item.productId !== productId));
+            } else {
+                throw new Error('Failed to remove item');
+            }
         } catch (error) {
             console.error('Error removing item:', error);
+            setError(error.message);
         }
     };
 
-    const updateQuantity = async (cartItem, newQuantity) => {
+    const updateQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/cart/${cartItem.id}`, {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await fetch(`http://localhost:3001/api/cart/${user._id}/product/${productId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,13 +86,16 @@ export default function Cart() {
 
             if (response.ok) {
                 setCartItems(cartItems.map(item => 
-                    item.id === cartItem.id 
+                    item.productId === productId 
                         ? {...item, quantity: newQuantity}
                         : item
                 ));
+            } else {
+                throw new Error('Failed to update quantity');
             }
         } catch (error) {
             console.error('Error updating quantity:', error);
+            setError(error.message);
         }
     };
 
@@ -78,9 +106,8 @@ export default function Cart() {
         }, 0);
     };
 
-    if (loading) {
-        return <div className="container my-4">Loading...</div>;
-    }
+    if (loading) return <div className="container my-4">Loading...</div>;
+    if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
     return (
         <div className="container my-4">
@@ -88,7 +115,7 @@ export default function Cart() {
                 <h2>Shopping Cart</h2>
                 <button 
                     className="btn btn-outline-secondary"
-                    onClick={() => navigate('/buyer/dashboard')}
+                    onClick={() => navigate('/')}
                 >
                     Continue Shopping
                 </button>
@@ -99,7 +126,7 @@ export default function Cart() {
                     <h4>Your cart is empty</h4>
                     <button 
                         className="btn btn-primary mt-3"
-                        onClick={() => navigate('/buyer/dashboard')}
+                        onClick={() => navigate('/')}
                     >
                         Start Shopping
                     </button>
@@ -111,14 +138,17 @@ export default function Cart() {
                         if (!product) return null;
 
                         return (
-                            <div key={item.id} className="card mb-3">
+                            <div key={item.productId} className="card mb-3">
                                 <div className="row g-0">
                                     <div className="col-md-2">
                                         <img 
-                                            src={product.imageFilename} 
+                                            src={`http://localhost:3001${product.image}`}
                                             className="img-fluid rounded-start" 
                                             alt={product.name} 
-                                            style={{ maxHeight: '150px', objectFit: 'cover' }}
+                                            style={{ height: '150px', objectFit: 'cover' }}
+                                            onError={(e) => {
+                                                e.target.src = '/placeholder.jpg';
+                                            }}
                                         />
                                     </div>
                                     <div className="col-md-7">
@@ -128,14 +158,14 @@ export default function Cart() {
                                             <div className="d-flex align-items-center">
                                                 <button 
                                                     className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => updateQuantity(item, item.quantity - 1)}
+                                                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                                                 >
                                                     -
                                                 </button>
                                                 <span className="mx-3">{item.quantity}</span>
                                                 <button 
                                                     className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => updateQuantity(item, item.quantity + 1)}
+                                                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                                                 >
                                                     +
                                                 </button>
@@ -145,7 +175,7 @@ export default function Cart() {
                                     <div className="col-md-3 d-flex align-items-center justify-content-center">
                                         <button 
                                             className="btn btn-danger"
-                                            onClick={() => removeFromCart(item.id)}
+                                            onClick={() => removeFromCart(item.productId)}
                                         >
                                             Remove
                                         </button>
@@ -164,7 +194,7 @@ export default function Cart() {
                             </div>
                             <button 
                                 className="btn btn-success w-100"
-                                onClick={() => navigate('/checkout')}
+                                onClick={() => navigate('/buyer/checkout')}
                             >
                                 Proceed to Checkout
                             </button>

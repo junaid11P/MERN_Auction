@@ -65,4 +65,31 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Add this route to get user details
+router.get('/:userId', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Remove sensitive information
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        res.json({
+            success: true,
+            user: userResponse
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch user data'
+        });
+    }
+});
+
 module.exports = router;

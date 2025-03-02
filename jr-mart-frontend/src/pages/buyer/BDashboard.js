@@ -4,80 +4,79 @@ import { useNavigate } from 'react-router-dom';
 export default function BDashboard() {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
-    const [cart, setCart] = useState([]); // Initialize as empty array
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
-        // Fetch products
-        fetch('http://localhost:3001/products')
-            .then(res => res.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error('Error fetching products:', error));
+        const fetchData = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user?._id || user.userType !== 'buyer') {
+                    navigate('/login');
+                    return;
+                }
 
-        // Fetch cart items
-        fetch('http://localhost:3001/cart')
-            .then(res => res.json())
-            .then(data => Array.isArray(data) ? setCart(data) : setCart([]))
-            .catch(error => console.error('Error fetching cart:', error));
-    }, []);
+                // Fetch products and cart in parallel
+                const [productsRes, cartRes] = await Promise.all([
+                    fetch('http://localhost:3001/api/products'),
+                    fetch(`http://localhost:3001/api/cart/${user._id}`)
+                ]);
 
-    // Calculate cart total with safety check
-    const getCartItemsCount = () => {
-        if (!Array.isArray(cart)) return 0;
-        return cart.reduce((total, item) => total + (item.quantity || 1), 0);
-    };
+                if (!productsRes.ok) throw new Error('Failed to fetch products');
+                if (!cartRes.ok) throw new Error('Failed to fetch cart');
+
+                const productsData = await productsRes.json();
+                const cartData = await cartRes.json();
+
+                setProducts(productsData.products || []);
+                setCartCount(cartData.cart?.products?.length || 0);
+            } catch (error) {
+                console.error('Error:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [navigate]);
 
     const addToCart = async (product) => {
         try {
-            // Check if product already exists in cart
-            const existingCartItem = cart.find(item => item.productId === product.id);
-
-            if (existingCartItem) {
-                // Update quantity if product already in cart
-                const response = await fetch(`http://localhost:3001/cart/${existingCartItem.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        quantity: existingCartItem.quantity + 1
-                    })
-                });
-
-                if (response.ok) {
-                    setCart(cart.map(item => 
-                        item.id === existingCartItem.id 
-                            ? {...item, quantity: item.quantity + 1}
-                            : item
-                    ));
-                }
-            } else {
-                // Add new item to cart
-                const cartItem = {
-                    productId: product.id,
-                    quantity: 1,
-                    price: product.price,
-                    addedAt: new Date().toISOString()
-                };
-
-                const response = await fetch('http://localhost:3001/cart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(cartItem)
-                });
-
-                if (response.ok) {
-                    const newCartItem = await response.json();
-                    setCart([...cart, newCartItem]);
-                }
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user?._id) {
+                navigate('/login');
+                return;
             }
+
+            const response = await fetch('http://localhost:3001/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user._id,
+                    productId: product._id,
+                    quantity: 1
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add to cart');
+            }
+
+            const data = await response.json();
+            setCartCount(data.cart.products.length);
             alert('Added to cart!');
         } catch (error) {
             console.error('Error adding to cart:', error);
-            alert('Failed to add item to cart');
+            alert(error.message || 'Failed to add item to cart');
         }
     };
+
+    if (loading) return <div className="container my-4">Loading...</div>;
+    if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
     return (
         <div className="container my-4">
@@ -85,21 +84,24 @@ export default function BDashboard() {
                 <h2>Add items to the cart</h2>
                 <button 
                     className="btn btn-outline-primary d-flex align-items-center"
-                    onClick={() => navigate('/buyer/Cart')}
+                    onClick={() => navigate('/buyer/cart')}
                 >
                     <img src="/cart4.svg" alt="cart" width="24" className="me-2" />
-                    Cart ({getCartItemsCount()})
+                    Cart ({cartCount})
                 </button>
             </div>
             <div className="row">
                 {products.map(product => (
-                    <div key={product.id} className="col-md-4 mb-4">
+                    <div key={product._id} className="col-md-4 mb-4">
                         <div className="card h-100">
                             <img 
-                                src={product.imageFilename} 
+                                src={`http://localhost:3001${product.image}`}
                                 className="card-img-top"
                                 alt={product.name}
                                 style={{ height: '200px', objectFit: 'cover' }}
+                                onError={(e) => {
+                                    e.target.src = '/placeholder.jpg';
+                                }}
                             />
                             <div className="card-body d-flex flex-column">
                                 <h5 className="card-title">{product.name}</h5>
@@ -116,6 +118,13 @@ export default function BDashboard() {
                         </div>
                     </div>
                 ))}
+                {products.length === 0 && (
+                    <div className="col">
+                        <div className="alert alert-info">
+                            No products available at the moment.
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -162,4 +162,20 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Add this route to your existing products.js
+router.post('/bulk', async (req, res) => {
+    try {
+        const { productIds } = req.body;
+        const products = await Product.find({
+            _id: { $in: productIds }
+        });
+        res.json({ success: true, products });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch products'
+        });
+    }
+});
+
 module.exports = router;

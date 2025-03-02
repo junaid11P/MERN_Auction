@@ -48,11 +48,15 @@ export default function Home() {
                 return;
             }
 
+            if (user.userType === 'seller') {
+                alert('Sellers cannot add items to cart');
+                return;
+            }
+
             const cartItem = {
                 userId: user._id,
-                productId: product._id, // Changed from product.id to product._id for MongoDB
-                quantity: 1,
-                price: product.price
+                productId: product._id,
+                quantity: 1
             };
 
             const response = await fetch('http://localhost:3001/api/cart', {
@@ -63,15 +67,16 @@ export default function Home() {
                 body: JSON.stringify(cartItem)
             });
 
+            const data = await response.json();
+
             if (response.ok) {
                 alert('Added to cart!');
                 navigate('/buyer/cart');
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message);
+                throw new Error(data.message || 'Failed to add item to cart');
             }
         } catch (error) {
-            console.error('Error adding to cart:', error);
+            console.error('Error:', error);
             alert(error.message || 'Failed to add item to cart');
         } finally {
             setIsLoading(false);

@@ -12,6 +12,11 @@ const orderSchema = new mongoose.Schema({
             ref: 'Product',
             required: true
         },
+        sellerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
         quantity: {
             type: Number,
             required: true,
@@ -22,18 +27,28 @@ const orderSchema = new mongoose.Schema({
             required: true
         }
     }],
+    shippingAddress: {
+        type: String,
+        required: true
+    },
     totalAmount: {
         type: Number,
         required: true
     },
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'shipped', 'delivered'],
+        enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
         default: 'pending'
     },
-    shippingAddress: {
+    paymentMethod: {
         type: String,
+        enum: ['cod', 'online'],
         required: true
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
     },
     createdAt: {
         type: Date,
