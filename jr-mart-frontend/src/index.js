@@ -32,12 +32,13 @@ function App() {
             <div className="App">
                 <Navbar />
                 <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/contact" element={<Contact />} />
+                    {/* Public Routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     
                     {/* Buyer Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/contact" element={<Contact />} />
                     <Route path="/buyer/dashboard" element={<BDashboard />} />
                     <Route path="/buyer/Cart" element={<Cart />} />
                     <Route path="/buyer/profile" element={<BProfile />} />

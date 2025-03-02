@@ -4,71 +4,157 @@ import { useNavigate } from 'react-router-dom';
 export default function SDashboard() {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Fetch seller's products
-        fetch('http://localhost:3001/products')
-            .then(res => res.json())
-            .then(data => setProducts(data.filter(p => p.sellerId === 2))); // Replace with actual seller ID
+    // Add handleDelete function
+    const handleDelete = async (productId) => {
+        if (!window.confirm('Are you sure you want to delete this product?')) {
+            return;
+        }
 
-        // Fetch seller's orders
-        fetch('http://localhost:3001/orders')
-            .then(res => res.json())
-            .then(data => setOrders(data.filter(o => o.sellerId === 2))); // Replace with actual seller ID
-    }, []);
+        try {
+            const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setProducts(products.filter(product => product._id !== productId));
+                alert('Product deleted successfully');
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to delete product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to delete product');
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user?._id) {
+                    navigate('/login');
+                    return;
+                }
+
+                const [productsRes, ordersRes] = await Promise.all([
+                    fetch(`http://localhost:3001/api/products/seller/${user._id}`),
+                    fetch(`http://localhost:3001/api/orders/seller/${user._id}`)
+                ]);
+
+                if (!productsRes.ok || !ordersRes.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const [productsData, ordersData] = await Promise.all([
+                    productsRes.json(),
+                    ordersRes.json()
+                ]);
+
+                setProducts(productsData.products || []);
+                setOrders(ordersData.orders || []);
+            } catch (error) {
+                console.error('Error:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [navigate]);
+
+    if (loading) return <div className="container mt-4">Loading...</div>;
+    if (error) return <div className="container mt-4 alert alert-danger">{error}</div>;
 
     return (
         <div className="container my-4">
-            <h2>Seller Dashboard</h2>
-            <div className="row mb-4">
-                <div className="col">
-                    <button 
-                        className="btn btn-primary"
-                        onClick={() => navigate('/seller/CreateProduct')}
-                    >
-                        Add New Product
-                    </button>
-                </div>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2>Seller Dashboard</h2>
+                <button 
+                    className="btn btn-primary"
+                    onClick={() => navigate('/seller/CreateProduct')}
+                >
+                    Add New Product
+                </button>
             </div>
+
             <div className="row">
                 <div className="col-md-8">
-                    <h3>Your Products</h3>
+                    <h3 className="mb-3">Your Products</h3>
                     <div className="row">
                         {products.map(product => (
-                            <div key={product.id} className="col-md-6 mb-4">
-                                <div className="card">
+                            <div key={product._id} className="col-md-6 mb-4">
+                                <div className="card h-100 shadow-sm">
                                     <img 
-                                        src={product.imageFilename} 
-                                        className="card-img-top" 
-                                        alt={product.name} 
+                                        src={`http://localhost:3001${product.image}`}
+                                        className="card-img-top"
+                                        alt={product.name}
+                                        style={{ height: '200px', objectFit: 'cover' }}
                                     />
                                     <div className="card-body">
                                         <h5 className="card-title">{product.name}</h5>
+                                        <p className="card-text text-muted">{product.category}</p>
                                         <p className="card-text">₹{product.price}</p>
-                                        <button 
-                                            className="btn btn-secondary me-2"
-                                            onClick={() => navigate(`/seller/EditProduct/${product.id}`)}
-                                        >
-                                            Edit
-                                        </button>
+                                        <div className="d-flex gap-2">
+                                            <button 
+                                                className="btn btn-outline-primary"
+                                                onClick={() => navigate(`/seller/EditProduct/${product._id}`)}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                className="btn btn-outline-danger"
+                                                onClick={() => handleDelete(product._id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         ))}
+                        {products.length === 0 && (
+                            <div className="col">
+                                <p className="text-muted">No products yet. Add your first product!</p>
+                            </div>
+                        )}
                     </div>
                 </div>
+
                 <div className="col-md-4">
-                    <h3>Recent Orders</h3>
+                    <h3 className="mb-3">Recent Orders</h3>
                     {orders.map(order => (
-                        <div key={order.id} className="card mb-3">
+                        <div key={order._id} className="card mb-3 shadow-sm">
                             <div className="card-body">
-                                <h6>Order #{order.id}</h6>
-                                <p className="mb-1">Amount: ₹{order.amount}</p>
-                                <p className="mb-1">Status: {order.status}</p>
+                                <h6 className="mb-2">Order #{order._id.slice(-6)}</h6>
+                                <p className="mb-1">Items: {order.products.length}</p>
+                                <p className="mb-1">Total: ₹{order.totalAmount}</p>
+                                <p className="mb-0">
+                                    <span 
+                                        className={`badge ${
+                                            order.status === 'pending' ? 'bg-warning' :
+                                            order.status === 'confirmed' ? 'bg-info' :
+                                            order.status === 'shipped' ? 'bg-primary' :
+                                            'bg-success'
+                                        }`}
+                                    >
+                                        {order.status}
+                                    </span>
+                                </p>
                             </div>
                         </div>
                     ))}
+                    {orders.length === 0 && (
+                        <p className="text-muted">No orders yet.</p>
+                    )}
                 </div>
             </div>
         </div>

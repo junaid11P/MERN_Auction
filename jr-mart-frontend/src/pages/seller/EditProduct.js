@@ -1,64 +1,124 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 export default function EditProduct() {
-    const params= useParams()
-    const [validationErrors, setValidationErrors] = useState({});
-    const [products, setProducts] = useState([]);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [product, setProduct] = useState({
+        name: '',
+        category: '',
+        price: '',
+        description: '',
+        image: ''
+    });
 
-    const navigate = useNavigate()
+    useEffect(() => {
+        fetchProduct();
+    }, [id]);
+
+    const fetchProduct = async () => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/products/${id}`);
+            if (!response.ok) {
+                throw new Error('Product not found');
+            }
+            const data = await response.json();
+            setProduct(data.product);
+            setImagePreview(`http://localhost:3001${data.product.image}`);
+        } catch (error) {
+            console.error('Error:', error);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setProduct(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
 
     async function handleSubmit(event) {
         event.preventDefault();
+        setError(null);
         
         const formData = new FormData(event.target);
-        const product = Object.fromEntries(formData.entries());
-
-        if(!product.name || !product.category || !product.price || !product.description) {
-            alert("Please fill all fields");
-            return;
-        }
-
+        
         try {
-            const response = await fetch(`http://localhost:3001/products/${params.id}`, {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user?._id) {
+                throw new Error('User not authenticated');
+            }
+
+            formData.append('sellerId', user._id);
+
+            const response = await fetch(`http://localhost:3001/api/products/${id}`, {
                 method: 'PATCH',
-                body: formData // Send FormData directly
+                body: formData
             });
 
-            if(response.ok){
-                alert("Product updated successfully!");
-                navigate('/seller/ProductList');
+            const data = await response.json();
+
+            if(response.ok) {
+                navigate('/seller/ProductList', {
+                    state: { 
+                        success: true,
+                        message: 'Product updated successfully!'
+                    }
+                });
             } else {
-                throw new Error('Failed to update product');
+                throw new Error(data.message || 'Failed to update product');
             }
         } catch(error) {
-            console.error('Error updating product:', error);
-            alert("Unable to update product. Please try again.");
+            console.error('Error:', error);
+            setError(error.message || "Unable to update product. Please try again.");
         }
     }
 
+    if (loading) return <div className="container my-4">Loading...</div>;
+    if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
+
     return (
         <div className="container my-4">
-            <div className="row">
-                <div claaName="col-md-8-auto rounded border p-4">
-                    <h2 className="text-center mb-5">Edit Product</h2>
-                    <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">ID</label>
-                            <div className="col-sm-8">
-                                <input  readOnly className="form-control-plaintext" defaultValue={params.id} />
-                            </div>
-                        </div>
+            <div className="row justify-content-center">
+                <div className="col-md-8 rounded border p-4">
+                    <h2 className="text-center mb-4">Edit Product</h2>
+                    
                     <form onSubmit={handleSubmit}>
-                        <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">Name</label>
-                            <div className="col-sm-8">
-                                <input className="form-control" name="name" />
-                                <span className="text-danger">{validationErrors.name}</span>
-                            </div>
+                        <div className="mb-3">
+                            <label className="form-label">Name</label>
+                            <input 
+                                type="text"
+                                className="form-control"
+                                name="name"
+                                value={product.name}
+                                onChange={handleChange}
+                                required
+                            />
                         </div>
-                        <div className="col-sm-8">
-                            <label className="col-s-4 col-form-label">Category</label>
-                            <select className="form-control" name="category" required>
+
+                        <div className="mb-3">
+                            <label className="form-label">Category</label>
+                            <select 
+                                className="form-control"
+                                name="category"
+                                value={product.category}
+                                onChange={handleChange}
+                                required
+                            >
                                 <option value="">Select Category</option>
                                 <option value="Laptop">Laptop</option>
                                 <option value="Fashion">Fashion</option>
@@ -66,51 +126,76 @@ export default function EditProduct() {
                                 <option value="Grocery">Grocery</option>
                             </select>
                         </div>
-                        <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">Price</label>
-                            <div className="col-sm-8">
-                                <input className="form-control" name="price" />
-                                <span className="text-danger">{validationErrors.price}</span>
-                            </div>
-                        </div>
-                        <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">Description</label>
-                            <div className="col-sm-8">
-                                <textarea className="form-control" name="description"></textarea>
-                                <span className="text-danger">{validationErrors.description}</span>
-                            </div>
-                        </div>
-                        <div className="row mb-3">
-                            <div className="offset-sm-4 col-sm-8">
-                                <img src={"http://localhost:3001/images/" + "IceCream.jpg"} width="150" alt="..." className="img-thumbnail" />
-                            </div>
-                        </div>
-                        <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">Created At</label>
-                            <div className="col-sm-8">
-                                <input readOnly className="form-control-plaintext" defaultValue={"2023-07-13"} />
-                            </div>
+
+                        <div className="mb-3">
+                            <label className="form-label">Price</label>
+                            <input 
+                                type="number"
+                                className="form-control"
+                                name="price"
+                                value={product.price}
+                                onChange={handleChange}
+                                min="0"
+                                step="0.01"
+                                required
+                            />
                         </div>
 
-                        <div className="row mb-3">
-                            <label className="col-s-4 col-form-label">Image</label>
-                            <div className="col-sm-8">
-                                <input type="file" className="form-control" name="image" />
-                                <span className="text-danger">{validationErrors.image}</span>
-                            </div>
+                        <div className="mb-3">
+                            <label className="form-label">Description</label>
+                            <textarea 
+                                className="form-control"
+                                name="description"
+                                value={product.description}
+                                onChange={handleChange}
+                                rows="3"
+                                required
+                            ></textarea>
                         </div>
 
-                        <div className="row">
-                            <div className="offset-sm-4 col-sm-4 d-grid">
-                            <button className="btn btn-primary" type="submit">Submit</button>
-                            </div>
+                        <div className="mb-3">
+                            <label className="form-label">Image</label>
+                            <input 
+                                type="file"
+                                className="form-control"
+                                name="image"
+                                onChange={handleImageChange}
+                                accept="image/*"
+                            />
+                            {imagePreview && (
+                                <img 
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    className="mt-2"
+                                    style={{ maxWidth: '200px' }}
+                                />
+                            )}
                         </div>
-                        <div className="col-sm-4 d-grid">
-                            <Link className="btn btn-secondary" to="/seller/dashboard" role="button">Cancel</Link>
+
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="d-flex gap-2">
+                            <button 
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={loading}
+                            >
+                                {loading ? 'Updating...' : 'Update Product'}
+                            </button>
+                            <Link 
+                                to="/seller/ProductList"
+                                className="btn btn-secondary"
+                            >
+                                Cancel
+                            </Link>
                         </div>
                     </form>
+                </div>
             </div>
         </div>
-    </div>
-    )
+    );
 }

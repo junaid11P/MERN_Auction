@@ -5,42 +5,55 @@ export default function CreateProduct() {
     const navigate = useNavigate();
     const [imagePreview, setImagePreview] = useState(null);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     async function handleSubmit(event) {
         event.preventDefault();
         setError(null);
+        setLoading(true);
         
         const formData = new FormData(event.target);
         const product = Object.fromEntries(formData.entries());
 
-        // Validate form data
+        // Validation
         if(!product.name || !product.category || !product.price || !product.description || !product.image.size) {
             setError("Please fill all fields");
+            setLoading(false);
             return;
         }
 
         try {
-            // Get the seller ID from localStorage
             const user = JSON.parse(localStorage.getItem('user'));
+            if (!user?._id) {
+                throw new Error('User not authenticated');
+            }
+
             formData.append('sellerId', user._id);
 
-            // Send form data to server
             const response = await fetch('http://localhost:3001/api/products', {
                 method: 'POST',
-                body: formData,
+                body: formData
             });
 
             const data = await response.json();
 
-            if(response.ok){
+            if(response.ok) {
                 alert("Product created successfully!");
-                navigate('/seller/ProductList');
+                // Changed navigation to ProductList
+                navigate('/seller/ProductList', { 
+                    state: { 
+                        success: true,
+                        message: 'Product created successfully!'
+                    }
+                });
             } else {
                 throw new Error(data.message || 'Failed to create product');
             }
         } catch(error) {
-            console.error('Error creating product:', error);
-            setError("Unable to create product. Please try again.");
+            console.error('Error:', error);
+            setError(error.message || "Unable to create product. Please try again.");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -125,8 +138,8 @@ export default function CreateProduct() {
                             </div>
                         )}
                         <div className="d-flex gap-2">
-                            <button className="btn btn-primary" type="submit">
-                                Create Product
+                            <button className="btn btn-primary" type="submit" disabled={loading}>
+                                {loading ? 'Creating...' : 'Create Product'}
                             </button>
                             <Link 
                                 className="btn btn-secondary" 

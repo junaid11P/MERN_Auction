@@ -7,16 +7,26 @@ export default function Home() {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Fetch products when component mounts
-        fetch('http://localhost:3001/products')
-            .then(res => res.json())
-            .then(data => {
-                setProducts(data);
-                setFilteredProducts(data);
-            })
-            .catch(error => console.error('Error fetching products:', error));
+        // Fetch products from MongoDB
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/products');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+                const data = await response.json();
+                setProducts(data.products);
+                setFilteredProducts(data.products);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                setError(error.message);
+            }
+        };
+
+        fetchProducts();
     }, []);
 
     const handleSearch = (e) => {
@@ -32,14 +42,20 @@ export default function Home() {
     const handleAddToCart = async (product) => {
         setIsLoading(true);
         try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                navigate('/login');
+                return;
+            }
+
             const cartItem = {
-                productId: product.id,
+                userId: user._id,
+                productId: product._id, // Changed from product.id to product._id for MongoDB
                 quantity: 1,
-                price: product.price,
-                addedAt: new Date().toISOString()
+                price: product.price
             };
 
-            const response = await fetch('http://localhost:3001/cart', {
+            const response = await fetch('http://localhost:3001/api/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,11 +65,14 @@ export default function Home() {
 
             if (response.ok) {
                 alert('Added to cart!');
-                navigate('/buyer/Cart');
+                navigate('/buyer/cart');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message);
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
-            alert('Failed to add item to cart');
+            alert(error.message || 'Failed to add item to cart');
         } finally {
             setIsLoading(false);
         }
@@ -224,10 +243,10 @@ export default function Home() {
                             <h3>Search Results</h3>
                             <div className="row g-4">
                                 {filteredProducts.map(product => (
-                                    <div className="col-md-3" key={product.id}>
+                                    <div className="col-md-3" key={product._id}>
                                         <div className="card h-100 shadow-sm">
                                             <img 
-                                                src={product.imageFilename}
+                                                src={`http://localhost:3001${product.image}`}
                                                 className="card-img-top"
                                                 alt={product.name}
                                                 style={{ height: '200px', objectFit: 'cover' }}

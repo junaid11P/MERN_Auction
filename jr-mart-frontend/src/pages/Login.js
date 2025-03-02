@@ -30,19 +30,16 @@ export default function Login() {
                 body: JSON.stringify(formData)
             });
 
-            const data = await response.json();
-
             if (response.ok) {
-                // Store user data in localStorage
-                localStorage.setItem('user', JSON.stringify(data.user));
+                const userData = await response.json();
+                localStorage.setItem('user', JSON.stringify(userData.user));
                 
-                // Navigate based on user type
-                if (data.user.userType === 'buyer') {
-                    navigate('/buyer/dashboard');
-                } else {
-                    navigate('/seller/dashboard');
-                }
+                // Force a page reload to update the navbar
+                window.location.href = userData.user.userType === 'buyer' 
+                    ? '/buyer/dashboard' 
+                    : '/seller/dashboard';
             } else {
+                const data = await response.json();
                 setError(data.message || 'Invalid credentials');
             }
         } catch (error) {

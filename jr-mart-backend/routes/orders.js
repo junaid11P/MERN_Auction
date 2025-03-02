@@ -12,6 +12,18 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get orders by seller ID
+router.get('/seller/:sellerId', async (req, res) => {
+    try {
+        const orders = await Order.find({ 'products.sellerId': req.params.sellerId })
+            .sort({ createdAt: -1 })
+            .limit(10);
+        res.json({ success: true, orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Create order
 router.post('/', async (req, res) => {
     try {
