@@ -83,6 +83,12 @@
       "sellerId": 2,
       "status": "available",
       "id": 5
+    },
+    {
+      "id": 6
+    },
+    {
+      "id": 7
     }
   ],
   "orders": [

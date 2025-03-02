@@ -19,28 +19,35 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(''); // Clear previous errors
+        
         try {
-            // Fetch users from db.json
-            const response = await fetch('http://localhost:3001/users');
-            const users = await response.json();
-            
-            const user = users.find(u => 
-                u.email === formData.email && 
-                u.userType === formData.userType
-            );
+            const response = await fetch('http://localhost:3001/users/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
 
-            if (user) {
-                // In production, use proper password validation
-                if (formData.userType === 'buyer') {
+            const data = await response.json();
+
+            if (response.ok) {
+                // Store user data in localStorage
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                // Navigate based on user type
+                if (data.user.userType === 'buyer') {
                     navigate('/buyer/dashboard');
                 } else {
                     navigate('/seller/dashboard');
                 }
             } else {
-                setError('Invalid credentials');
+                setError(data.message || 'Invalid credentials');
             }
         } catch (error) {
-            setError('Login failed. Please try again.');
+            console.error('Login error:', error);
+            setError('Network error. Please try again.');
         }
     };
 

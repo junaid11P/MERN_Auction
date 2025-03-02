@@ -17,6 +17,15 @@ import BProfile from './pages/buyer/BProfile';
 import SProfile from './pages/seller/SProfile';
 import Checkout from './pages/buyer/checkout';  // Updated import path
 
+const API_URL = 'http://localhost:3001/api';
+
+// Example fetch call:
+fetch(`${API_URL}/products`)
+    .then(res => res.json())
+    .then(data => {
+        // Handle response
+    });
+
 function App() {
     return (
         <BrowserRouter>
