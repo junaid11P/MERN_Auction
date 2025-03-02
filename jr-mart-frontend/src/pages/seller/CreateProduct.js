@@ -4,35 +4,43 @@ import { Link, useNavigate } from "react-router-dom";
 export default function CreateProduct() {
     const navigate = useNavigate();
     const [imagePreview, setImagePreview] = useState(null);
+    const [error, setError] = useState(null);
 
     async function handleSubmit(event) {
         event.preventDefault();
+        setError(null);
         
         const formData = new FormData(event.target);
         const product = Object.fromEntries(formData.entries());
 
         // Validate form data
         if(!product.name || !product.category || !product.price || !product.description || !product.image.size) {
-            alert("Please fill all fields");
+            setError("Please fill all fields");
             return;
         }
 
         try {
-            // Send form data directly to server
-            const response = await fetch('http://localhost:3001/products', {
+            // Get the seller ID from localStorage
+            const user = JSON.parse(localStorage.getItem('user'));
+            formData.append('sellerId', user._id);
+
+            // Send form data to server
+            const response = await fetch('http://localhost:3001/api/products', {
                 method: 'POST',
-                body: formData // Send FormData directly
+                body: formData,
             });
+
+            const data = await response.json();
 
             if(response.ok){
                 alert("Product created successfully!");
                 navigate('/seller/ProductList');
             } else {
-                throw new Error('Failed to create product');
+                throw new Error(data.message || 'Failed to create product');
             }
         } catch(error) {
             console.error('Error creating product:', error);
-            alert("Unable to create product. Please try again.");
+            setError("Unable to create product. Please try again.");
         }
     }
 
@@ -111,6 +119,11 @@ export default function CreateProduct() {
                                 />
                             )}
                         </div>
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error}
+                            </div>
+                        )}
                         <div className="d-flex gap-2">
                             <button className="btn btn-primary" type="submit">
                                 Create Product

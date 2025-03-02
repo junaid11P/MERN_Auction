@@ -12,6 +12,7 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // MongoDB Connection
 mongoose.connect('mongodb://127.0.0.1:27017/JRmart', {
@@ -36,7 +37,7 @@ const upload = multer({ storage: storage });
 
 // Routes
 app.use('/api/users', require('./routes/users'));
-app.use('/products', require('./routes/products'));
+app.use('/api/products', require('./routes/products'));
 app.use('/orders', require('./routes/orders'));
 app.use('/cart', require('./routes/cart'));
 
