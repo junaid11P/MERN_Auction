@@ -6,19 +6,20 @@ const connectDB = require('./config/db');
 const mongoose = require('mongoose');
 
 const app = express();
+const PORT = 3001;
 
-// Connect to MongoDB
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// MongoDB Connection
 mongoose.connect('mongodb://127.0.0.1:27017/JRmart', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
 // Configure multer for image upload
 const storage = multer.diskStorage({
@@ -154,9 +155,7 @@ app.delete('/orders/:id', (req, res) => {
     res.json({ message: 'Order deleted' });
 });
 // Start server
-const PORT = process.env.PORT || 3001;  
-
-app.listen(3001, () => {
+app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 }).on('error', (err) => {
     console.error('Server error:', err);

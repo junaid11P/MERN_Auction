@@ -22,7 +22,7 @@ export default function Login() {
         setError(''); // Clear previous errors
         
         try {
-            const response = await fetch('http://localhost:3001/users/', {
+            const response = await fetch('http://localhost:3001/api/users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

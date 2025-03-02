@@ -2,38 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 
-// Register user
-router.post('/register', async (req, res) => {
-    try {
-        // Check if user already exists
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email already registered' });
-        }
-
-        // Create new user
-        const user = new User(req.body);
-        await user.save();
-
-        // Remove password from response
-        const userResponse = user.toObject();
-        delete userResponse.password;
-
-        res.status(201).json({
-            success: true,
-            message: 'Registration successful',
-            user: userResponse
-        });
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ 
-            success: false,
-            message: error.message || 'Error registering user'
-        });
-    }
-});
-
-// Login user
+// Add login route
 router.post('/login', async (req, res) => {
     try {
         const { email, password, userType } = req.body;
@@ -61,6 +30,38 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.post('/register', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email already registered' });
+        }
+
+        // Create new user
+        const user = new User(req.body);
+        await user.save();
+
+        // Remove password from response
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful',
+            user: userResponse
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ 
+            success: false,
+            message: error.message || 'Error registering user'
+        });
     }
 });
 
