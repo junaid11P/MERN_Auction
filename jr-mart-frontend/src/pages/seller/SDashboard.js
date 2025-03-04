@@ -107,31 +107,101 @@ export default function SDashboard() {
 
     const handlePaymentVerification = async (orderId, isVerified) => {
         try {
-            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
+            // First, confirm with the seller
+            if (!isVerified && !window.confirm('Are you sure you want to reject this payment?')) {
+                return;
+            }
+
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/payment-verification`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     status: isVerified ? 'payment_verified' : 'payment_rejected',
+                    paymentStatus: isVerified ? 'completed' : 'failed',
                     message: isVerified ? 
                         'Payment verified by seller' : 
-                        'Payment rejected, please submit correct details'
+                        'Payment rejected - Invalid or incorrect payment proof'
                 })
             });
 
-            if (response.ok) {
-                alert(isVerified ? 'Payment verified' : 'Payment rejected');
-                // Dispatch event for buyer dashboard update
-                window.dispatchEvent(new CustomEvent('orderStatusChanged'));
-                // Refresh seller dashboard
-                fetchData();
-            } else {
+            if (!response.ok) {
                 throw new Error('Failed to update payment status');
             }
+
+            const data = await response.json();
+
+            // If payment is rejected, remove from recent orders
+            if (!isVerified) {
+                setOrders(orders.filter(order => order._id !== orderId));
+            } else {
+                // Update the order status in the list
+                setOrders(orders.map(order => 
+                    order._id === orderId 
+                        ? { ...order, status: 'payment_verified', paymentStatus: 'completed' }
+                        : order
+                ));
+            }
+
+            // Notify the seller
+            alert(isVerified ? 'Payment verified successfully' : 'Payment rejected successfully');
+
+            // Dispatch event for buyer dashboard update
+            window.dispatchEvent(new CustomEvent('orderStatusChanged', {
+                detail: {
+                    orderId,
+                    status: isVerified ? 'payment_verified' : 'payment_rejected',
+                    message: isVerified ? 
+                        'Payment verified by seller' : 
+                        'Payment rejected - Please submit valid payment proof'
+                }
+            }));
+
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message);
+            alert(error.message || 'Failed to update payment status');
+        }
+    };
+
+    const handleRejectIncompletePayment = async (orderId) => {
+        try {
+            const reason = prompt('Please enter the reason for rejection:', 'Incomplete payment proof (missing UTR/screenshot)');
+            if (!reason) return; // User cancelled
+
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/reject-incomplete-payment`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to reject payment');
+            }
+
+            // Update local state
+            setOrders(orders.map(order => 
+                order._id === orderId
+                    ? {
+                        ...order,
+                        orderStatus: 'payment_rejected',
+                        paymentStatus: 'failed',
+                        rejectedReason: reason
+                    }
+                    : order
+            ));
+
+            // Notify success
+            alert('Payment rejected successfully');
+
+            // Dispatch event for buyer dashboard update
+            window.dispatchEvent(new CustomEvent('orderStatusChanged'));
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to reject payment');
         }
     };
 
@@ -212,11 +282,16 @@ export default function SDashboard() {
                                     </span>
                                 </div>
                                 
-                                {order.utrNumber && (
+                                {order.paymentMethod === 'online' && (
                                     <div className="payment-details border-top pt-3">
                                         <h6>Payment Details</h6>
-                                        <p className="mb-2"><strong>UTR Number:</strong> {order.utrNumber}</p>
-                                        {order.paymentProof && (
+                                        {order.utrNumber ? (
+                                            <p className="mb-2"><strong>UTR Number:</strong> {order.utrNumber}</p>
+                                        ) : (
+                                            <p className="text-warning mb-2">No UTR number provided</p>
+                                        )}
+                                        
+                                        {order.paymentProof ? (
                                             <div className="mb-3">
                                                 <p className="mb-2"><strong>Payment Screenshot:</strong></p>
                                                 <img 
@@ -226,14 +301,24 @@ export default function SDashboard() {
                                                     className="img-thumbnail"
                                                 />
                                             </div>
+                                        ) : (
+                                            <p className="text-warning mb-2">No payment screenshot provided</p>
                                         )}
-                                        {order.status !== 'payment_verified' && (
+
+                                        {order.status !== 'payment_verified' && order.status !== 'payment_rejected' && (
                                             <div className="btn-group w-100">
                                                 <button 
                                                     className="btn btn-success btn-sm"
                                                     onClick={() => handlePaymentVerification(order._id, true)}
+                                                    disabled={!order.utrNumber || !order.paymentProof}
                                                 >
                                                     Verify Payment
+                                                </button>
+                                                <button 
+                                                    className="btn btn-warning btn-sm"
+                                                    onClick={() => handleRejectIncompletePayment(order._id)}
+                                                >
+                                                    Reject Incomplete
                                                 </button>
                                                 <button 
                                                     className="btn btn-danger btn-sm"
@@ -241,6 +326,12 @@ export default function SDashboard() {
                                                 >
                                                     Reject Payment
                                                 </button>
+                                            </div>
+                                        )}
+                                        
+                                        {order.rejectedReason && (
+                                            <div className="mt-2 text-danger">
+                                                <strong>Rejection Reason:</strong> {order.rejectedReason}
                                             </div>
                                         )}
                                     </div>

@@ -37,9 +37,15 @@ export default function Payment() {
 
     const handlePaymentSubmission = async (e) => {
         e.preventDefault();
+        
         try {
-            if (!utrNumber || !paymentProof) {
-                alert('Please provide both UTR number and payment screenshot');
+            if (!utrNumber.trim()) {
+                alert('Please enter UTR number');
+                return;
+            }
+
+            if (!paymentProof) {
+                alert('Please upload payment proof');
                 return;
             }
 
@@ -52,13 +58,23 @@ export default function Payment() {
                 body: formData
             });
 
-            if (!response.ok) throw new Error('Failed to submit payment proof');
+            if (!response.ok) {
+                throw new Error('Failed to submit payment proof');
+            }
 
-            alert('Payment proof submitted successfully!');
+            // Clear cart only after successful payment proof submission
+            const user = JSON.parse(localStorage.getItem('user'));
+            await fetch(`http://localhost:3001/api/cart/${user._id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            alert('Payment proof submitted successfully! Please wait for seller verification.');
             navigate('/buyer/orders');
+
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message);
+            alert(error.message || 'Failed to submit payment proof');
         }
     };
 

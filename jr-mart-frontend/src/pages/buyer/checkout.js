@@ -113,7 +113,6 @@ export default function Checkout() {
                 return;
             }
 
-            // Create order with correct initial status
             const orderData = {
                 userId: user._id,
                 products: cartItems.map(item => ({
@@ -125,7 +124,7 @@ export default function Checkout() {
                 shippingAddress: shippingAddress.trim(),
                 totalAmount,
                 paymentMethod,
-                orderStatus: 'pending', // Always start with pending
+                orderStatus: paymentMethod === 'cod' ? 'processing' : 'payment_pending',
                 paymentStatus: paymentMethod === 'cod' ? 'pending' : 'payment_pending'
             };
 
@@ -144,29 +143,18 @@ export default function Checkout() {
 
             const responseData = await orderResponse.json();
 
-            // Clear cart after successful order
-            await fetch(`http://localhost:3001/api/cart/${user._id}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (paymentMethod === 'online') {
-                navigate(`/buyer/payment/${responseData.order._id}`);
-            } else {
-                // For COD, update to processing status
-                await fetch(`http://localhost:3001/api/orders/${responseData.order._id}/status`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        orderStatus: 'processing', // Changed from 'confirmed' to 'processing'
-                        message: 'Order confirmed with Cash on Delivery'
-                    })
+            // Only clear cart for COD orders immediately
+            if (paymentMethod === 'cod') {
+                await fetch(`http://localhost:3001/api/cart/${user._id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
                 alert('Order placed successfully! You can pay on delivery.');
                 navigate('/buyer/orders');
+            } else {
+                // For online payment, redirect to payment page without clearing cart
+                navigate(`/buyer/payment/${responseData.order._id}`);
             }
         } catch (error) {
             console.error('Error:', error);

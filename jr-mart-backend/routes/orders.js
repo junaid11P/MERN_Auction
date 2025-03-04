@@ -323,23 +323,23 @@ router.post('/:orderId/payment-proof', upload.single('paymentProof'), async (req
     try {
         const { orderId } = req.params;
         const { utrNumber } = req.body;
-        const paymentProof = req.file ? `/images/payments/${req.file.filename}` : null;
-
-        if (!utrNumber || !paymentProof) {
-            return res.status(400).json({
-                success: false,
-                message: 'UTR number and payment proof are required'
-            });
-        }
+        const paymentProofPath = req.file ? `/uploads/${req.file.filename}` : null;
 
         const order = await Order.findByIdAndUpdate(
             orderId,
             {
                 $set: {
                     utrNumber,
-                    paymentProof,
-                    status: 'payment_pending',
+                    paymentProof: paymentProofPath,
+                    orderStatus: 'payment_pending',
                     paymentStatus: 'pending_verification'
+                },
+                $push: {
+                    trackingHistory: {
+                        status: 'payment_pending',
+                        message: 'Payment proof submitted, waiting for verification',
+                        timestamp: new Date()
+                    }
                 }
             },
             { new: true }
@@ -354,13 +354,15 @@ router.post('/:orderId/payment-proof', upload.single('paymentProof'), async (req
 
         res.json({
             success: true,
-            order
+            order,
+            message: 'Payment proof submitted successfully'
         });
+
     } catch (error) {
         console.error('Payment proof submission error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to submit payment proof'
+            message: error.message || 'Failed to submit payment proof'
         });
     }
 });
@@ -400,6 +402,108 @@ router.patch('/:orderId/tracking', async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message
+        });
+    }
+});
+
+router.patch('/:orderId/payment-verification', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status, paymentStatus, message } = req.body;
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            {
+                $set: {
+                    status,
+                    paymentStatus,
+                    rejectedAt: status === 'payment_rejected' ? new Date() : undefined
+                },
+                $push: {
+                    trackingHistory: {
+                        status,
+                        message,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        // If payment is rejected, notify the buyer
+        if (status === 'payment_rejected') {
+            // You can implement email notification here
+            // await sendPaymentRejectionEmail(order.userId, order._id, message);
+        }
+
+        res.json({
+            success: true,
+            order,
+            message: status === 'payment_verified' ? 
+                'Payment verified successfully' : 
+                'Payment rejected successfully'
+        });
+
+    } catch (error) {
+        console.error('Payment verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to update payment status'
+        });
+    }
+});
+
+// Add new route for rejecting incomplete payment submissions
+router.patch('/:orderId/reject-incomplete-payment', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { reason } = req.body;
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            {
+                $set: {
+                    orderStatus: 'payment_rejected',
+                    paymentStatus: 'failed',
+                    rejectedReason: reason,
+                    rejectedAt: new Date()
+                },
+                $push: {
+                    trackingHistory: {
+                        status: 'payment_rejected',
+                        message: `Payment rejected: ${reason}`,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            order,
+            message: 'Payment rejected successfully'
+        });
+
+    } catch (error) {
+        console.error('Payment rejection error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to reject payment'
         });
     }
 });

@@ -91,6 +91,12 @@ const orderSchema = new mongoose.Schema({
             }
         }],
         default: [] // Initialize as empty array
+    },
+    rejectedReason: {
+        type: String
+    },
+    rejectedAt: {
+        type: Date
     }
 }, { timestamps: true });
 
