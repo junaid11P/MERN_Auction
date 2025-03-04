@@ -5,6 +5,7 @@ export default function Navbar() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [recentOrders, setRecentOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const userFromStorage = localStorage.getItem('user');
@@ -15,12 +16,18 @@ export default function Navbar() {
             if (userData?.userType === 'buyer') {
                 fetchRecentOrders(userData._id);
             }
+
+            // Fetch recent orders for both buyer and seller
+            if (userData?.userType === 'seller') {
+                fetchSellerOrders(userData._id);
+            }
         }
-    }, []);
+    }, [recentOrders.length]);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
         setUser(null);
+        setRecentOrders([]); // Clear orders on logout
         navigate('/login');
     };
 
@@ -33,6 +40,25 @@ export default function Navbar() {
             }
         } catch (error) {
             console.error('Error fetching recent orders:', error);
+        }
+    };
+
+    // Add this new function to fetch seller orders
+    const fetchSellerOrders = async (sellerId) => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://localhost:3001/api/orders/seller/${sellerId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch seller orders');
+            }
+            const data = await response.json();
+            if (data.success && Array.isArray(data.orders)) {
+                setRecentOrders(data.orders);
+            }
+        } catch (error) {
+            console.error('Error fetching seller orders:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -95,6 +121,60 @@ export default function Navbar() {
                                                 Dashboard
                                             </Link>
                                         </li>
+                                        {user.userType === 'buyer' && (
+                                            <li>
+                                                <Link 
+                                                    className="dropdown-item" 
+                                                    to="/buyer/orders"
+                                                >
+                                                    My Orders
+                                                </Link>
+                                            </li>
+                                        )}
+                                        {user.userType === 'seller' && (
+                                            <>
+                                                <li>
+                                                    <Link 
+                                                        className="dropdown-item" 
+                                                        to="/seller/recent-orders"
+                                                    >
+                                                        Recent Orders
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link 
+                                                        className="dropdown-item" 
+                                                        to={recentOrders.length > 0 
+                                                            ? `/seller/update-tracking/${recentOrders[0]._id}` 
+                                                            : '/seller/recent-orders'
+                                                        }
+                                                        onClick={(e) => {
+                                                            if (loading) {
+                                                                e.preventDefault();
+                                                                alert('Loading orders...');
+                                                                return;
+                                                            }
+                                                            if (recentOrders.length === 0) {
+                                                                e.preventDefault();
+                                                                alert('No orders available to update tracking');
+                                                            }
+                                                        }}
+                                                    >
+                                                        {loading ? 'Loading...' : 'Update Tracking'}
+                                                    </Link>
+                                                </li>
+                                            </>
+                                        )}
+                                        {user.userType === 'buyer' && (
+                                            <li>
+                                                <Link 
+                                                    className="dropdown-item" 
+                                                    to="/buyer/track-order"
+                                                >
+                                                    Track Order
+                                                </Link>
+                                            </li>
+                                        )}
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
                                             <button 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Orders() {
     const [orders, setOrders] = useState([]);
@@ -33,6 +33,28 @@ export default function Orders() {
 
         fetchOrders();
     }, [navigate]);
+
+    useEffect(() => {
+        const handleStatusChange = () => {
+            const fetchUpdatedOrders = async () => {
+                try {
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    const response = await fetch(`http://localhost:3001/api/orders/user/${user._id}`);
+                    if (!response.ok) throw new Error('Failed to fetch orders');
+                    
+                    const data = await response.json();
+                    setOrders(data.orders);
+                } catch (error) {
+                    console.error('Error refreshing orders:', error);
+                }
+            };
+
+            fetchUpdatedOrders();
+        };
+
+        window.addEventListener('orderStatusChanged', handleStatusChange);
+        return () => window.removeEventListener('orderStatusChanged', handleStatusChange);
+    }, []);
 
     const handleCancelOrder = async (orderId) => {
         if (!window.confirm('Are you sure you want to cancel this order?')) {
@@ -76,15 +98,29 @@ export default function Orders() {
                 orders.map(order => (
                     <div key={order._id} className="card mb-3">
                         <div className="card-header d-flex justify-content-between align-items-center">
-                            <span>Order #{order._id.slice(-6)}</span>
+                            <div className="d-flex align-items-center">
+                                <span className="me-2">Order #</span>
+                                <code className="me-2">{order._id}</code>
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(order._id);
+                                        alert('Order ID copied to clipboard!');
+                                    }}
+                                    title="Copy Order ID"
+                                >
+                                    <i className="bi bi-clipboard"></i>
+                                </button>
+                            </div>
                             <span className={`badge ${
+                                order.status === 'payment_verified' ? 'bg-success' :
+                                order.status === 'payment_pending' ? 'bg-info' :
                                 order.status === 'pending' ? 'bg-warning' :
-                                order.status === 'confirmed' ? 'bg-info' :
                                 order.status === 'shipped' ? 'bg-primary' :
                                 order.status === 'delivered' ? 'bg-success' :
                                 'bg-danger'
                             }`}>
-                                {order.status.toUpperCase()}
+                                {(order.status || 'pending').toUpperCase()}
                             </span>
                         </div>
                         <div className="card-body">
@@ -116,11 +152,14 @@ export default function Orders() {
                                     <p className="mb-1">
                                         <strong>Payment Status:</strong>{' '}
                                         <span className={`badge ${
-                                            order.paymentStatus === 'pending' ? 'bg-warning' :
+                                            order.status === 'payment_verified' ? 'bg-success' :
+                                            order.status === 'payment_pending' ? 'bg-info' :
                                             order.paymentStatus === 'completed' ? 'bg-success' :
-                                            'bg-danger'
+                                            'bg-warning'
                                         }`}>
-                                            {order.paymentStatus.toUpperCase()}
+                                            {order.status === 'payment_verified' ? 'VERIFIED' :
+                                             order.status === 'payment_pending' ? 'PENDING VERIFICATION' :
+                                             (order.paymentStatus || 'pending').toUpperCase()}
                                         </span>
                                     </p>
                                     <p className="mb-0">
@@ -132,31 +171,41 @@ export default function Orders() {
                                 <div className="progress flex-grow-1 me-3" style={{ height: '20px' }}>
                                     <div 
                                         className={`progress-bar ${
-                                            order.orderStatus === 'cancelled' ? 'bg-danger' :
-                                            order.orderStatus === 'delivered' ? 'bg-success' : 'bg-primary'
+                                            order.status === 'cancelled' ? 'bg-danger' :
+                                            order.status === 'payment_verified' ? 'bg-success' :
+                                            'bg-primary'
                                         }`}
                                         role="progressbar"
                                         style={{ 
                                             width: `${
-                                                order.orderStatus === 'pending' ? '25%' :
-                                                order.orderStatus === 'confirmed' ? '50%' :
-                                                order.orderStatus === 'shipped' ? '75%' :
-                                                order.orderStatus === 'delivered' ? '100%' :
+                                                order.status === 'pending' ? '20%' :
+                                                order.status === 'payment_pending' ? '40%' :
+                                                order.status === 'payment_verified' ? '60%' :
+                                                order.status === 'shipped' ? '80%' :
+                                                order.status === 'delivered' ? '100%' :
                                                 '100%'
                                             }`
                                         }}
                                     >
-                                        {order.orderStatus.toUpperCase()}
+                                        {(order.status || 'pending').toUpperCase()}
                                     </div>
                                 </div>
-                                {['pending', 'confirmed'].includes(order.orderStatus) && (
-                                    <button 
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => handleCancelOrder(order._id)}
+                                <div>
+                                    <Link 
+                                        to={`/buyer/track-order/${order._id}`}
+                                        className="btn btn-info btn-sm me-2"
                                     >
-                                        Cancel Order
-                                    </button>
-                                )}
+                                        Track Order
+                                    </Link>
+                                    {['pending', 'payment_pending'].includes(order.status) && (
+                                        <button 
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => handleCancelOrder(order._id)}
+                                        >
+                                            Cancel Order
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

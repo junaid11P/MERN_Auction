@@ -20,6 +20,9 @@ import ProtectedBuyerRoute from './components/ProtectedBuyerRoute';
 import ProtectedSellerRoute from './components/ProtectedSellerRoute';
 import Orders from './pages/buyer/Orders';
 import Payment from './pages/buyer/Payment';
+import RecentOrder from './pages/seller/recentorder';
+import TrackOrder from './pages/buyer/TrackOrder';
+import UpdateTracking from './pages/seller/UpdateTracking';
 
 const API_URL = 'http://localhost:3001/api';
 
@@ -50,6 +53,8 @@ function App() {
                         <Route path="checkout" element={<Checkout />} />
                         <Route path="orders" element={<Orders />} />
                         <Route path="payment/:orderId" element={<Payment />} />
+                        <Route path="track-order" element={<TrackOrder />} />
+                        <Route path="track-order/:orderId" element={<TrackOrder />} />
                     </Route>
                     
                     {/* Seller Routes */}
@@ -59,6 +64,8 @@ function App() {
                         <Route path="ProductList" element={<ProductList />} />
                         <Route path="EditProduct/:id" element={<EditProduct />} />
                         <Route path="profile" element={<SProfile />} />
+                        <Route path="recent-orders" element={<RecentOrder />} />
+                        <Route path="update-tracking/:orderId" element={<UpdateTracking />} />
                     </Route>
                     
                     <Route path="*" element={<NotFound />} />

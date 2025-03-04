@@ -13,3 +13,62 @@
     background-color: #A0522D !important;
     color: white !important;
 }
+
+.tracking-timeline {
+    margin: 20px 0;
+    padding: 0;
+}
+
+.tracking-item {
+    padding: 10px;
+    border-left: 2px solid #dee2e6;
+    margin-left: 20px;
+    position: relative;
+}
+
+.tracking-item::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border: 2px solid #007bff;
+    border-radius: 50%;
+    position: absolute;
+    left: -7px;
+    top: 12px;
+}
+
+.tracking-status {
+    font-weight: bold;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.tracking-status.active {
+    background-color: #e3f2fd;
+    border-left: 4px solid #0d6efd;
+}
+
+.tracking-icon {
+    margin-right: 1rem;
+    width: 24px;
+    height: 24px;
+}
+
+.tracking-details {
+    flex-grow: 1;
+}
+
+.tracking-time {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.tracking-message {
+    margin-top: 5px;
+}

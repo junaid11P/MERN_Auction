@@ -2,6 +2,18 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+    destination: 'public/images/payments',
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'payment-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
 
 // Get all orders
 router.get('/', async (req, res) => {
@@ -16,19 +28,34 @@ router.get('/', async (req, res) => {
 // Get orders by seller ID
 router.get('/seller/:sellerId', async (req, res) => {
     try {
-        const orders = await Order.find({ 'products.sellerId': req.params.sellerId })
-            .populate('products.productId userId')
-            .sort({ createdAt: -1 });
-        res.json({ success: true, orders });
+        const { sellerId } = req.params;
+        console.log('Fetching orders for seller:', sellerId); // Debug log
+
+        const orders = await Order.find({
+            'products.sellerId': sellerId
+        })
+        .sort({ createdAt: -1 })
+        .populate('userId', 'name email')
+        .populate('products.productId');
+
+        console.log('Found orders:', orders.length); // Debug log
+
+        res.json({
+            success: true,
+            orders
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        console.error('Error fetching seller orders:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch orders'
+        });
     }
 });
 
-// Create order
+// Update the create order route
 router.post('/', async (req, res) => {
     try {
-        // Validate required fields
         const { userId, products, shippingAddress, totalAmount, paymentMethod } = req.body;
         
         if (!userId || !products || !products.length || !shippingAddress || !totalAmount) {
@@ -38,15 +65,15 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Create order
+        // Create order with correct status values
         const order = new Order({
             userId,
             products,
             shippingAddress,
             totalAmount,
             paymentMethod,
-            orderStatus: paymentMethod === 'cod' ? 'confirmed' : 'pending',
-            paymentStatus: paymentMethod === 'cod' ? 'pending' : 'processing'
+            orderStatus: paymentMethod === 'cod' ? 'processing' : 'payment_pending',
+            paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending'
         });
 
         await order.save();
@@ -114,8 +141,68 @@ router.get('/user/:userId/recent', async (req, res) => {
 router.get('/:orderId', async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId)
-            .populate('products.productId')
-            .populate('products.sellerId', 'name email');
+            .populate('userId')
+            .populate('products.productId');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found. Please check the order ID and try again.'
+            });
+        }
+
+        res.json({
+            success: true,
+            order
+        });
+    } catch (error) {
+        console.error('Order tracking error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Invalid order ID format or server error'
+        });
+    }
+});
+
+// Update order status route
+router.patch('/:orderId/status', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { orderStatus, message } = req.body;
+
+        // Validate status before updating
+        const validStatuses = [
+            'pending',
+            'payment_pending',
+            'payment_verified',
+            'processing',
+            'shipped',
+            'out_for_delivery',
+            'delivered',
+            'cancelled'
+        ];
+
+        if (!validStatuses.includes(orderStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order status'
+            });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            {
+                $set: { orderStatus },
+                $push: {
+                    trackingHistory: {
+                        status: orderStatus,
+                        message,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
 
         if (!order) {
             return res.status(404).json({
@@ -127,43 +214,6 @@ router.get('/:orderId', async (req, res) => {
         res.json({
             success: true,
             order
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to fetch order'
-        });
-    }
-});
-
-// Update order status route
-router.patch('/:orderId/status', async (req, res) => {
-    try {
-        const { status, orderStatus } = req.body;
-        
-        // Find and update both status and orderStatus
-        const order = await Order.findByIdAndUpdate(
-            req.params.orderId,
-            { 
-                $set: { 
-                    status: status,
-                    orderStatus: orderStatus 
-                }
-            },
-            { new: true }
-        ).populate('products.productId userId');
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found'
-            });
-        }
-
-        res.json({ 
-            success: true, 
-            order,
-            message: 'Order status updated successfully'
         });
     } catch (error) {
         console.error('Order status update error:', error);
@@ -204,6 +254,152 @@ router.patch('/:orderId/cancel', async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Failed to cancel order'
+        });
+    }
+});
+
+// Add payment verification route
+router.patch('/:orderId/verify-payment', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status, message, verifiedBy } = req.body;
+
+        // Update order status
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            {
+                $set: {
+                    orderStatus: status,
+                    paymentStatus: status === 'payment_verified' ? 'completed' : 'pending'
+                },
+                $push: {
+                    trackingHistory: {
+                        status,
+                        message,
+                        updatedBy: verifiedBy,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        // Update payment record
+        if (status === 'payment_verified') {
+            await Payment.findOneAndUpdate(
+                { orderId: order._id },
+                {
+                    $set: {
+                        status: 'completed',
+                        verifiedBy,
+                        verifiedAt: new Date()
+                    }
+                }
+            );
+        }
+
+        res.json({
+            success: true,
+            order
+        });
+    } catch (error) {
+        console.error('Payment verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to verify payment'
+        });
+    }
+});
+
+// Add payment proof submission route
+router.post('/:orderId/payment-proof', upload.single('paymentProof'), async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { utrNumber } = req.body;
+        const paymentProof = req.file ? `/images/payments/${req.file.filename}` : null;
+
+        if (!utrNumber || !paymentProof) {
+            return res.status(400).json({
+                success: false,
+                message: 'UTR number and payment proof are required'
+            });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            {
+                $set: {
+                    utrNumber,
+                    paymentProof,
+                    status: 'payment_pending',
+                    paymentStatus: 'pending_verification'
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            order
+        });
+    } catch (error) {
+        console.error('Payment proof submission error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to submit payment proof'
+        });
+    }
+});
+
+// Add this route for updating tracking status
+router.patch('/:orderId/tracking', async (req, res) => {
+    try {
+        const { status, message } = req.body;
+        
+        const order = await Order.findByIdAndUpdate(
+            req.params.orderId,
+            {
+                $set: { status },
+                $push: {
+                    trackingStatus: {
+                        status,
+                        message,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            order
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
         });
     }
 });

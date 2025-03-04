@@ -13,6 +13,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/images/payments', express.static(path.join(__dirname, 'public/images/payments')));
+app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
+app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
+app.use('/images/payments', express.static(path.join(__dirname, 'public/images/payments')));
+app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
 
 // Error handling for JSON parsing
 app.use((err, req, res, next) => {

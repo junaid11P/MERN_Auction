@@ -7,7 +7,8 @@ export default function Payment() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [orderDetails, setOrderDetails] = useState(null);
-    const [sellerPaymentDetails, setSellerPaymentDetails] = useState({});
+    const [utrNumber, setUtrNumber] = useState('');
+    const [paymentProof, setPaymentProof] = useState(null);
 
     useEffect(() => {
         const fetchOrderDetails = async () => {
@@ -23,23 +24,6 @@ export default function Payment() {
                 
                 const data = await response.json();
                 setOrderDetails(data.order);
-
-                // Fetch payment details for each seller
-                const sellerIds = [...new Set(data.order.products.map(p => p.sellerId))];
-                const sellerDetails = {};
-
-                await Promise.all(sellerIds.map(async (sellerId) => {
-                    const sellerResponse = await fetch(`http://localhost:3001/api/users/${sellerId}/payment-details`);
-                    if (sellerResponse.ok) {
-                        const sellerData = await sellerResponse.json();
-                        sellerDetails[sellerId] = {
-                            upiId: sellerData.paymentDetails.upiId,
-                            qrCode: sellerData.paymentDetails.qrCode
-                        };
-                    }
-                }));
-
-                setSellerPaymentDetails(sellerDetails);
             } catch (error) {
                 console.error('Error:', error);
                 setError(error.message);
@@ -51,17 +35,26 @@ export default function Payment() {
         fetchOrderDetails();
     }, [orderId, navigate]);
 
-    const handlePaymentComplete = async () => {
+    const handlePaymentSubmission = async (e) => {
+        e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/payment`, {
+            if (!utrNumber || !paymentProof) {
+                alert('Please provide both UTR number and payment screenshot');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('utrNumber', utrNumber);
+            formData.append('paymentProof', paymentProof);
+
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/payment-proof`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paymentStatus: 'completed' })
+                body: formData
             });
 
-            if (!response.ok) throw new Error('Failed to update payment status');
+            if (!response.ok) throw new Error('Failed to submit payment proof');
 
-            alert('Payment marked as completed!');
+            alert('Payment proof submitted successfully!');
             navigate('/buyer/orders');
         } catch (error) {
             console.error('Error:', error);
@@ -85,56 +78,76 @@ export default function Payment() {
                         <div className="card-body">
                             <p><strong>Order ID:</strong> {orderId}</p>
                             <p><strong>Total Amount:</strong> ₹{orderDetails.totalAmount}</p>
-                            <p><strong>Payment Method:</strong> {orderDetails.paymentMethod.toUpperCase()}</p>
                         </div>
                     </div>
 
-                    {orderDetails.paymentMethod === 'online' && (
-                        <div className="card">
-                            <div className="card-header">
-                                <h5 className="mb-0">Seller Payment Details</h5>
-                            </div>
-                            <div className="card-body">
-                                {orderDetails.products.map((product, index) => {
-                                    const sellerDetails = sellerPaymentDetails[product.sellerId];
-                                    
-                                    return (
-                                        <div key={index} className="mb-4">
-                                            <h6>Seller {index + 1}</h6>
-                                            <p><strong>Amount:</strong> ₹{product.price * product.quantity}</p>
-                                            {sellerDetails ? (
-                                                <>
-                                                    {sellerDetails.upiId && (
-                                                        <p><strong>UPI ID:</strong> {sellerDetails.upiId}</p>
-                                                    )}
-                                                    {sellerDetails.qrCode && (
-                                                        <div className="mb-3">
-                                                            <p><strong>QR Code:</strong></p>
-                                                            <img
-                                                                src={`http://localhost:3001${sellerDetails.qrCode}`}
-                                                                alt="Payment QR Code"
-                                                                style={{ maxWidth: '200px' }}
-                                                                className="mb-3"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <p>No payment details available for this seller.</p>
-                                            )}
-                                            <hr />
-                                        </div>
-                                    );
-                                })}
-                                <button
-                                    className="btn btn-success w-100"
-                                    onClick={handlePaymentComplete}
-                                >
-                                    I have completed the payment
-                                </button>
-                            </div>
+                    <div className="card">
+                        <div className="card-header">
+                            <h5 className="mb-0">Payment Instructions</h5>
                         </div>
-                    )}
+                        <div className="card-body">
+                            <div className="text-center mb-4">
+                                <img
+                                    src="http://localhost:3001/qrcodes/payment_QR.jpeg"
+                                    alt="Payment QR Code"
+                                    style={{ maxWidth: '250px' }}
+                                    className="img-fluid mb-3"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = '/placeholder-qr.png';
+                                        console.error('Failed to load QR code image');
+                                    }}
+                                />
+                                <div className="alert alert-info">
+                                    <strong>UPI ID:</strong> 8105238129-3@ybl
+                                </div>
+                            </div>
+
+                            <div className="alert alert-warning">
+                                <h6 className="alert-heading">Payment Steps:</h6>
+                                <ol className="mb-0">
+                                    <li>Scan the QR code above or use the UPI ID</li>
+                                    <li>Make payment of exact amount: ₹{orderDetails.totalAmount}</li>
+                                    <li>Take screenshot of successful payment</li>
+                                    <li>Note down the UTR number from your payment app</li>
+                                    <li>Submit both UTR number and payment screenshot below</li>
+                                </ol>
+                            </div>
+
+                            <form onSubmit={handlePaymentSubmission}>
+                                <div className="mb-3">
+                                    <label className="form-label">UTR Number</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={utrNumber}
+                                        onChange={(e) => setUtrNumber(e.target.value)}
+                                        required
+                                        placeholder="Enter UTR Number"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Payment Screenshot</label>
+                                    <input
+                                        type="file"
+                                        className="form-control"
+                                        onChange={(e) => setPaymentProof(e.target.files[0])}
+                                        required
+                                        accept="image/*"
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary w-100"
+                                    disabled={!utrNumber || !paymentProof}
+                                >
+                                    Submit Payment Proof
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

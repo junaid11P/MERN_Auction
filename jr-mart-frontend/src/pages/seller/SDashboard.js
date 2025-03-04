@@ -8,7 +8,42 @@ export default function SDashboard() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Add handleDelete function
+    const fetchData = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user?._id || user.userType !== 'seller') {
+                navigate('/login');
+                return;
+            }
+
+            const [productsRes, ordersRes] = await Promise.all([
+                fetch(`http://localhost:3001/api/products/seller/${user._id}`),
+                fetch(`http://localhost:3001/api/orders/seller/${user._id}`)
+            ]);
+
+            if (!productsRes.ok || !ordersRes.ok) {
+                throw new Error('Failed to fetch data');
+            }
+
+            const [productsData, ordersData] = await Promise.all([
+                productsRes.json(),
+                ordersRes.json()
+            ]);
+
+            setProducts(productsData.products || []);
+            setOrders(ordersData.orders || []);
+        } catch (error) {
+            console.error('Error:', error);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [navigate]);
+
     const handleDelete = async (productId) => {
         if (!window.confirm('Are you sure you want to delete this product?')) {
             return;
@@ -35,7 +70,6 @@ export default function SDashboard() {
         }
     };
 
-    // Add handleAcceptOrder function after handleDelete
     const handleAcceptOrder = async (orderId) => {
         try {
             const response = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
@@ -71,44 +105,38 @@ export default function SDashboard() {
         }
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const user = JSON.parse(localStorage.getItem('user'));
-                if (!user?._id) {
-                    navigate('/login');
-                    return;
-                }
+    const handlePaymentVerification = async (orderId, isVerified) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: isVerified ? 'payment_verified' : 'payment_rejected',
+                    message: isVerified ? 
+                        'Payment verified by seller' : 
+                        'Payment rejected, please submit correct details'
+                })
+            });
 
-                const [productsRes, ordersRes] = await Promise.all([
-                    fetch(`http://localhost:3001/api/products/seller/${user._id}`),
-                    fetch(`http://localhost:3001/api/orders/seller/${user._id}`)
-                ]);
-
-                if (!productsRes.ok || !ordersRes.ok) {
-                    throw new Error('Failed to fetch data');
-                }
-
-                const [productsData, ordersData] = await Promise.all([
-                    productsRes.json(),
-                    ordersRes.json()
-                ]);
-
-                setProducts(productsData.products || []);
-                setOrders(ordersData.orders || []);
-            } catch (error) {
-                console.error('Error:', error);
-                setError(error.message);
-            } finally {
-                setLoading(false);
+            if (response.ok) {
+                alert(isVerified ? 'Payment verified' : 'Payment rejected');
+                // Dispatch event for buyer dashboard update
+                window.dispatchEvent(new CustomEvent('orderStatusChanged'));
+                // Refresh seller dashboard
+                fetchData();
+            } else {
+                throw new Error('Failed to update payment status');
             }
-        };
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message);
+        }
+    };
 
-        fetchData();
-    }, [navigate]);
-
-    if (loading) return <div className="container mt-4">Loading...</div>;
-    if (error) return <div className="container mt-4 alert alert-danger">{error}</div>;
+    if (loading) return <div className="container my-4">Loading...</div>;
+    if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
     return (
         <div className="container my-4">
@@ -173,26 +201,50 @@ export default function SDashboard() {
                                 <h6 className="mb-2">Order #{order._id.slice(-6)}</h6>
                                 <p className="mb-1">Items: {order.products.length}</p>
                                 <p className="mb-1">Total: ₹{order.totalAmount}</p>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span 
-                                        className={`badge ${
-                                            order.status === 'pending' ? 'bg-warning' :
-                                            order.status === 'confirmed' ? 'bg-success' :
-                                            order.status === 'shipped' ? 'bg-primary' :
-                                            'bg-secondary'
-                                        }`}
-                                    >
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <span className={`badge ${
+                                        order.status === 'pending' ? 'bg-warning' :
+                                        order.status === 'payment_pending' ? 'bg-info' :
+                                        order.status === 'payment_verified' ? 'bg-success' :
+                                        'bg-secondary'
+                                    }`}>
                                         {(order.status || 'pending').toUpperCase()}
                                     </span>
-                                    {(!order.status || order.status === 'pending') && (
-                                        <button 
-                                            className="btn btn-sm btn-success"
-                                            onClick={() => handleAcceptOrder(order._id)}
-                                        >
-                                            Accept Order
-                                        </button>
-                                    )}
                                 </div>
+                                
+                                {order.utrNumber && (
+                                    <div className="payment-details border-top pt-3">
+                                        <h6>Payment Details</h6>
+                                        <p className="mb-2"><strong>UTR Number:</strong> {order.utrNumber}</p>
+                                        {order.paymentProof && (
+                                            <div className="mb-3">
+                                                <p className="mb-2"><strong>Payment Screenshot:</strong></p>
+                                                <img 
+                                                    src={`http://localhost:3001${order.paymentProof}`}
+                                                    alt="Payment Proof"
+                                                    style={{ maxWidth: '200px' }}
+                                                    className="img-thumbnail"
+                                                />
+                                            </div>
+                                        )}
+                                        {order.status !== 'payment_verified' && (
+                                            <div className="btn-group w-100">
+                                                <button 
+                                                    className="btn btn-success btn-sm"
+                                                    onClick={() => handlePaymentVerification(order._id, true)}
+                                                >
+                                                    Verify Payment
+                                                </button>
+                                                <button 
+                                                    className="btn btn-danger btn-sm"
+                                                    onClick={() => handlePaymentVerification(order._id, false)}
+                                                >
+                                                    Reject Payment
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

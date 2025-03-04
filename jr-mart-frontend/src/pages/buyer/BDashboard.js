@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import PaymentInstructions from '../../components/PaymentInstructions';
 
 export default function BDashboard() {
     const navigate = useNavigate();
@@ -8,6 +9,11 @@ export default function BDashboard() {
     const [error, setError] = useState(null);
     const [cartCount, setCartCount] = useState(0);
     const [recentOrders, setRecentOrders] = useState([]);
+    const [utrNumber, setUtrNumber] = useState('');
+    const [paymentProofFile, setPaymentProofFile] = useState(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [showPaymentInstructions, setShowPaymentInstructions] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -124,6 +130,40 @@ export default function BDashboard() {
         }
     };
 
+    // Update the payment submission handler
+    const handlePaymentSubmission = async (orderId) => {
+        try {
+            if (!utrNumber || !paymentProofFile) {
+                alert('Please provide both UTR number and payment proof');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('utrNumber', utrNumber);
+            formData.append('paymentProof', paymentProofFile);
+
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/verify-payment`, {
+                method: 'PATCH',
+                body: formData
+            });
+
+            if (response.ok) {
+                setShowPaymentModal(false);
+                setUtrNumber('');
+                setPaymentProofFile(null);
+                setSelectedOrderId(null);
+                alert('Payment proof submitted successfully');
+                forceRefresh();
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to submit payment');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to submit payment');
+        }
+    };
+
     if (loading) return <div className="container my-4">Loading...</div>;
     if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
@@ -209,6 +249,34 @@ export default function BDashboard() {
                                             <strong>Date:</strong>{' '}
                                             {new Date(order.createdAt).toLocaleDateString()}
                                         </p>
+                                        <div className="tracking-timeline">
+                                            {order.trackingStatus && order.trackingStatus.length > 0 ? (
+                                                order.trackingStatus.map((status, index) => (
+                                                    <div key={index} className="tracking-item">
+                                                        <div className="tracking-status">
+                                                            {status.status.replace(/_/g, ' ').toUpperCase()}
+                                                        </div>
+                                                        <div className="tracking-time">
+                                                            {new Date(status.timestamp).toLocaleString()}
+                                                        </div>
+                                                        <div className="tracking-message">{status.message}</div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-muted">No tracking updates available</div>
+                                            )}
+                                        </div>
+                                        {order.orderStatus === 'pending' && (
+                                            <button 
+                                                className="btn btn-primary"
+                                                onClick={() => {
+                                                    setSelectedOrderId(order._id);
+                                                    setShowPaymentModal(true);
+                                                }}
+                                            >
+                                                Submit Payment Proof
+                                            </button>
+                                        )}
                                         <button
                                             className="btn btn-outline-primary btn-sm w-100"
                                             onClick={() => navigate(`/buyer/orders`)}
@@ -236,6 +304,66 @@ export default function BDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Payment Modal */}
+            {showPaymentModal && (
+                <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Submit Payment Proof</h5>
+                                <button 
+                                    type="button" 
+                                    className="btn-close" 
+                                    onClick={() => setShowPaymentModal(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <label className="form-label">UTR Number</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={utrNumber}
+                                        onChange={(e) => setUtrNumber(e.target.value)}
+                                        placeholder="Enter UTR Number"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Payment Proof</label>
+                                    <input
+                                        type="file"
+                                        className="form-control"
+                                        accept="image/*"
+                                        onChange={(e) => setPaymentProofFile(e.target.files[0])}
+                                    />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowPaymentModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() => handlePaymentSubmission(selectedOrderId)}
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Payment Instructions Modal */}
+            {showPaymentInstructions && (
+                <PaymentInstructions onClose={() => setShowPaymentInstructions(false)} />
+            )}
         </div>
     );
 }
