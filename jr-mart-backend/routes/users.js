@@ -1,6 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/qrcodes/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.mimetype)) {
+            cb(new Error('Invalid file type'), false);
+            return;
+        }
+        cb(null, true);
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    }
+});
 
 // Add login route
 router.post('/login', async (req, res) => {
@@ -88,6 +115,65 @@ router.get('/:userId', async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Failed to fetch user data'
+        });
+    }
+});
+
+// Add this route to get seller payment details
+router.get('/:userId/payment-details', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user || user.userType !== 'seller') {
+            return res.status(404).json({
+                success: false,
+                message: 'Seller not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            paymentDetails: {
+                upiId: user.paymentDetails?.upiId || null,
+                qrCode: user.paymentDetails?.qrCode || null
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch seller payment details'
+        });
+    }
+});
+
+// Update user profile
+router.patch('/:userId', async (req, res) => {
+    try {
+        const updates = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.params.userId,
+            updates,
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Remove sensitive information
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        res.json({
+            success: true,
+            user: userResponse
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to update user data'
         });
     }
 });

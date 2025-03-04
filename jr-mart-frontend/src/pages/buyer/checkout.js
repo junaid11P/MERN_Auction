@@ -113,45 +113,42 @@ export default function Checkout() {
                 return;
             }
 
-            // Create order
+            const orderData = {
+                userId: user._id,
+                products: cartItems.map(item => ({
+                    productId: item.productId,
+                    sellerId: products[item.productId].sellerId,
+                    quantity: item.quantity,
+                    price: products[item.productId].price
+                })),
+                shippingAddress: shippingAddress.trim(),
+                totalAmount,
+                paymentMethod,
+                orderStatus: paymentMethod === 'cod' ? 'confirmed' : 'pending',
+                paymentStatus: paymentMethod === 'cod' ? 'pending' : 'processing'
+            };
+
             const orderResponse = await fetch('http://localhost:3001/api/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: user._id,
-                    products: cartItems.map(item => ({
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        price: products[item.productId].price,
-                        sellerId: products[item.productId].sellerId
-                    })),
-                    shippingAddress,
-                    totalAmount,
-                    paymentMethod,
-                    status: 'pending',
-                    paymentStatus: paymentMethod === 'cod' ? 'pending' : 'processing'
-                })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
             });
 
             if (!orderResponse.ok) {
-                throw new Error('Failed to create order');
+                const errorData = await orderResponse.json();
+                throw new Error(errorData.message || 'Failed to create order');
             }
 
-            const orderData = await orderResponse.json();
+            const responseData = await orderResponse.json();
 
             if (paymentMethod === 'online') {
-                // Redirect to payment gateway
-                window.location.href = `http://localhost:3001/api/payment/initiate/${orderData.order._id}`;
-                return;
+                navigate(`/buyer/payment/${responseData.order._id}`);
+            } else {
+                alert('Order placed successfully! You can pay on delivery.');
+                navigate('/buyer/orders');
             }
-
-            // Clear cart for COD orders
-            await fetch(`http://localhost:3001/api/cart/${user._id}/clear`, {
-                method: 'DELETE'
-            });
-
-            alert('Order placed successfully!');
-            navigate('/buyer/orders');
         } catch (error) {
             console.error('Error:', error);
             alert(error.message || 'Failed to place order');

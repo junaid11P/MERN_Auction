@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -23,6 +22,15 @@ const userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    paymentDetails: {
+        upiId: {
+            type: String,
+            trim: true
+        },
+        qrCode: {
+            type: String
+        }
     }
 });
 

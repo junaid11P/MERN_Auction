@@ -4,11 +4,17 @@ import { useState, useEffect } from 'react';
 export default function Navbar() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [recentOrders, setRecentOrders] = useState([]);
 
     useEffect(() => {
         const userFromStorage = localStorage.getItem('user');
         if (userFromStorage) {
-            setUser(JSON.parse(userFromStorage));
+            const userData = JSON.parse(userFromStorage);
+            setUser(userData);
+
+            if (userData?.userType === 'buyer') {
+                fetchRecentOrders(userData._id);
+            }
         }
     }, []);
 
@@ -16,6 +22,18 @@ export default function Navbar() {
         localStorage.removeItem('user');
         setUser(null);
         navigate('/login');
+    };
+
+    const fetchRecentOrders = async (userId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/orders/user/${userId}/recent`);
+            if (response.ok) {
+                const data = await response.json();
+                setRecentOrders(data.orders);
+            }
+        } catch (error) {
+            console.error('Error fetching recent orders:', error);
+        }
     };
 
     return (

@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
@@ -24,7 +25,8 @@ const orderSchema = new mongoose.Schema({
         },
         price: {
             type: Number,
-            required: true
+            required: true,
+            min: 0
         }
     }],
     shippingAddress: {
@@ -33,21 +35,22 @@ const orderSchema = new mongoose.Schema({
     },
     totalAmount: {
         type: Number,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-        default: 'pending'
+        required: true,
+        min: 0
     },
     paymentMethod: {
         type: String,
         enum: ['cod', 'online'],
         required: true
     },
+    orderStatus: {
+        type: String,
+        enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
+        default: 'pending'
+    },
     paymentStatus: {
         type: String,
-        enum: ['pending', 'completed', 'failed'],
+        enum: ['pending', 'processing', 'completed', 'failed'],
         default: 'pending'
     },
     createdAt: {

@@ -19,6 +19,7 @@ import Checkout from './pages/buyer/checkout';  // Updated import path
 import ProtectedBuyerRoute from './components/ProtectedBuyerRoute';
 import ProtectedSellerRoute from './components/ProtectedSellerRoute';
 import Orders from './pages/buyer/Orders';
+import Payment from './pages/buyer/Payment';
 
 const API_URL = 'http://localhost:3001/api';
 
@@ -48,6 +49,7 @@ function App() {
                         <Route path="profile" element={<BProfile />} />
                         <Route path="checkout" element={<Checkout />} />
                         <Route path="orders" element={<Orders />} />
+                        <Route path="payment/:orderId" element={<Payment />} />
                     </Route>
                     
                     {/* Seller Routes */}

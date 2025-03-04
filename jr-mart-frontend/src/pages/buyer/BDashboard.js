@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function BDashboard() {
     const navigate = useNavigate();
@@ -7,6 +7,7 @@ export default function BDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cartCount, setCartCount] = useState(0);
+    const [recentOrders, setRecentOrders] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -17,20 +18,25 @@ export default function BDashboard() {
                     return;
                 }
 
-                // Fetch products and cart in parallel
-                const [productsRes, cartRes] = await Promise.all([
+                const [productsRes, cartRes, ordersRes] = await Promise.all([
                     fetch('http://localhost:3001/api/products'),
-                    fetch(`http://localhost:3001/api/cart/${user._id}`)
+                    fetch(`http://localhost:3001/api/cart/${user._id}`),
+                    fetch(`http://localhost:3001/api/orders/user/${user._id}/recent`)
                 ]);
 
                 if (!productsRes.ok) throw new Error('Failed to fetch products');
                 if (!cartRes.ok) throw new Error('Failed to fetch cart');
+                if (!ordersRes.ok) throw new Error('Failed to fetch orders');
 
-                const productsData = await productsRes.json();
-                const cartData = await cartRes.json();
+                const [productsData, cartData, ordersData] = await Promise.all([
+                    productsRes.json(),
+                    cartRes.json(),
+                    ordersRes.json()
+                ]);
 
                 setProducts(productsData.products || []);
                 setCartCount(cartData.cart?.products?.length || 0);
+                setRecentOrders(ordersData.orders || []);
             } catch (error) {
                 console.error('Error:', error);
                 setError(error.message);
@@ -72,6 +78,17 @@ export default function BDashboard() {
         } catch (error) {
             console.error('Error adding to cart:', error);
             alert(error.message || 'Failed to add item to cart');
+        }
+    };
+
+    const getStatusBadgeClass = (status) => {
+        switch (status) {
+            case 'pending': return 'bg-warning';
+            case 'confirmed': return 'bg-info';
+            case 'shipped': return 'bg-primary';
+            case 'delivered': return 'bg-success';
+            case 'cancelled': return 'bg-danger';
+            default: return 'bg-secondary';
         }
     };
 
@@ -123,6 +140,67 @@ export default function BDashboard() {
                         <div className="alert alert-info">
                             No products available at the moment.
                         </div>
+                    </div>
+                )}
+            </div>
+            <div className="mt-5">
+                <h3 className="mb-4">Recent Orders</h3>
+                {recentOrders.length > 0 ? (
+                    <div className="row">
+                        {recentOrders.map(order => (
+                            <div key={order._id} className="col-md-4 mb-4">
+                                <div className="card">
+                                    <div className="card-header d-flex justify-content-between align-items-center">
+                                        <span>Order #{order._id.slice(-6)}</span>
+                                        <span className={`badge ${getStatusBadgeClass(order.orderStatus)}`}>
+                                            {order.orderStatus.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div className="card-body">
+                                        <p className="mb-1">
+                                            <strong>Total:</strong> ₹{order.totalAmount}
+                                        </p>
+                                        <p className="mb-1">
+                                            <strong>Items:</strong> {order.products.length}
+                                        </p>
+                                        <p className="mb-1">
+                                            <strong>Payment:</strong>{' '}
+                                            <span className={`badge ${
+                                                order.paymentStatus === 'completed' ? 'bg-success' :
+                                                order.paymentStatus === 'pending' ? 'bg-warning' :
+                                                'bg-danger'
+                                            }`}>
+                                                {order.paymentStatus.toUpperCase()}
+                                            </span>
+                                        </p>
+                                        <p className="mb-3">
+                                            <strong>Date:</strong>{' '}
+                                            {new Date(order.createdAt).toLocaleDateString()}
+                                        </p>
+                                        <button
+                                            className="btn btn-outline-primary btn-sm w-100"
+                                            onClick={() => navigate(`/buyer/orders`)}
+                                        >
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="alert alert-info">
+                        No orders found. Start shopping to place your first order!
+                    </div>
+                )}
+                {recentOrders.length > 3 && (
+                    <div className="text-center">
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => navigate('/buyer/orders')}
+                        >
+                            View All Orders
+                        </button>
                     </div>
                 )}
             </div>
