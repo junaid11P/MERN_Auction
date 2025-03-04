@@ -7,7 +7,6 @@ export default function Home() {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         // Fetch products from MongoDB
@@ -22,7 +21,6 @@ export default function Home() {
                 setFilteredProducts(data.products);
             } catch (error) {
                 console.error('Error fetching products:', error);
-                setError(error.message);
             }
         };
 

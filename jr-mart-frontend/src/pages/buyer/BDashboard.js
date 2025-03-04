@@ -48,6 +48,38 @@ export default function BDashboard() {
         fetchData();
     }, [navigate]);
 
+    const refreshOrders = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const ordersRes = await fetch(`http://localhost:3001/api/orders/user/${user._id}/recent`);
+            
+            if (!ordersRes.ok) throw new Error('Failed to fetch orders');
+            
+            const ordersData = await ordersRes.json();
+            setRecentOrders(ordersData.orders || []);
+        } catch (error) {
+            console.error('Error refreshing orders:', error);
+        }
+    };
+
+    // Add this function to force an immediate refresh
+    const forceRefresh = async () => {
+        await refreshOrders();
+    };
+
+    // Update the useEffect to listen for order status changes
+    useEffect(() => {
+        const intervalId = setInterval(refreshOrders, 10000); // Check every 10 seconds
+
+        // Listen for order status changes
+        window.addEventListener('orderStatusChanged', forceRefresh);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('orderStatusChanged', forceRefresh);
+        };
+    }, []);
+
     const addToCart = async (product) => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));

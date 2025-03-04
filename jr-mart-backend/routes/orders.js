@@ -89,10 +89,11 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// Add this route to get recent orders
+// Update the get recent orders route to include more details
 router.get('/user/:userId/recent', async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.params.userId })
+            .populate('products.productId')
             .sort({ createdAt: -1 })
             .limit(5);
 
@@ -101,6 +102,7 @@ router.get('/user/:userId/recent', async (req, res) => {
             orders
         });
     } catch (error) {
+        console.error('Fetch recent orders error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Failed to fetch recent orders'
@@ -134,15 +136,22 @@ router.get('/:orderId', async (req, res) => {
     }
 });
 
-// Update order status
+// Update order status route
 router.patch('/:orderId/status', async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status, orderStatus } = req.body;
+        
+        // Find and update both status and orderStatus
         const order = await Order.findByIdAndUpdate(
             req.params.orderId,
-            { status },
+            { 
+                $set: { 
+                    status: status,
+                    orderStatus: orderStatus 
+                }
+            },
             { new: true }
-        );
+        ).populate('products.productId userId');
         
         if (!order) {
             return res.status(404).json({
@@ -151,8 +160,13 @@ router.patch('/:orderId/status', async (req, res) => {
             });
         }
 
-        res.json({ success: true, order });
+        res.json({ 
+            success: true, 
+            order,
+            message: 'Order status updated successfully'
+        });
     } catch (error) {
+        console.error('Order status update error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Failed to update order status'

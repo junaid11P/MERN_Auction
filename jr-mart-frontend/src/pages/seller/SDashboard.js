@@ -35,6 +35,42 @@ export default function SDashboard() {
         }
     };
 
+    // Add handleAcceptOrder function after handleDelete
+    const handleAcceptOrder = async (orderId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    status: 'confirmed',
+                    orderStatus: 'confirmed'
+                })
+            });
+
+            if (response.ok) {
+                // Update the orders state
+                setOrders(orders.map(order => 
+                    order._id === orderId 
+                        ? { ...order, status: 'confirmed', orderStatus: 'confirmed' }
+                        : order
+                ));
+
+                // Dispatch event for buyer dashboard
+                window.dispatchEvent(new CustomEvent('orderStatusChanged'));
+                
+                alert('Order accepted successfully');
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to accept order');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to accept order');
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -137,18 +173,26 @@ export default function SDashboard() {
                                 <h6 className="mb-2">Order #{order._id.slice(-6)}</h6>
                                 <p className="mb-1">Items: {order.products.length}</p>
                                 <p className="mb-1">Total: ₹{order.totalAmount}</p>
-                                <p className="mb-0">
+                                <div className="d-flex justify-content-between align-items-center">
                                     <span 
                                         className={`badge ${
                                             order.status === 'pending' ? 'bg-warning' :
-                                            order.status === 'confirmed' ? 'bg-info' :
+                                            order.status === 'confirmed' ? 'bg-success' :
                                             order.status === 'shipped' ? 'bg-primary' :
-                                            'bg-success'
+                                            'bg-secondary'
                                         }`}
                                     >
-                                        {order.status}
+                                        {(order.status || 'pending').toUpperCase()}
                                     </span>
-                                </p>
+                                    {(!order.status || order.status === 'pending') && (
+                                        <button 
+                                            className="btn btn-sm btn-success"
+                                            onClick={() => handleAcceptOrder(order._id)}
+                                        >
+                                            Accept Order
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
