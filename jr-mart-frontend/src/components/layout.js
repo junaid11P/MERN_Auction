@@ -141,40 +141,9 @@ export default function Navbar() {
                                                         Recent Orders
                                                     </Link>
                                                 </li>
-                                                <li>
-                                                    <Link 
-                                                        className="dropdown-item" 
-                                                        to={recentOrders.length > 0 
-                                                            ? `/seller/update-tracking/${recentOrders[0]._id}` 
-                                                            : '/seller/recent-orders'
-                                                        }
-                                                        onClick={(e) => {
-                                                            if (loading) {
-                                                                e.preventDefault();
-                                                                alert('Loading orders...');
-                                                                return;
-                                                            }
-                                                            if (recentOrders.length === 0) {
-                                                                e.preventDefault();
-                                                                alert('No orders available to update tracking');
-                                                            }
-                                                        }}
-                                                    >
-                                                        {loading ? 'Loading...' : 'Update Tracking'}
-                                                    </Link>
-                                                </li>
                                             </>
                                         )}
-                                        {user.userType === 'buyer' && (
-                                            <li>
-                                                <Link 
-                                                    className="dropdown-item" 
-                                                    to="/buyer/track-order"
-                                                >
-                                                    Track Order
-                                                </Link>
-                                            </li>
-                                        )}
+                                        
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
                                             <button 
