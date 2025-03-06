@@ -52,8 +52,17 @@ export default function Payment() {
             const formData = new FormData();
             formData.append('utrNumber', utrNumber);
             formData.append('paymentProof', paymentProof);
+            
+            // Get user details from localStorage
+            const user = JSON.parse(localStorage.getItem('user'));
 
-            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/payment-proof`, {
+            // Add payment details to formData
+            formData.append('userId', user._id);
+            formData.append('orderId', orderId);
+            formData.append('amount', orderDetails.totalAmount);
+            formData.append('paymentDate', new Date().toISOString());
+
+            const response = await fetch(`http://localhost:3001/api/payments`, {
                 method: 'POST',
                 body: formData
             });
@@ -62,8 +71,7 @@ export default function Payment() {
                 throw new Error('Failed to submit payment proof');
             }
 
-            // Clear cart only after successful payment proof submission
-            const user = JSON.parse(localStorage.getItem('user'));
+            // Clear cart after successful payment submission
             await fetch(`http://localhost:3001/api/cart/${user._id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
