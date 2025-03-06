@@ -8,6 +8,7 @@ export default function SDashboard() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -42,7 +43,7 @@ export default function SDashboard() {
 
     useEffect(() => {
         fetchData();
-    }, [navigate]);
+    }, [fetchData, navigate]);
 
     const handleDelete = async (productId) => {
         if (!window.confirm('Are you sure you want to delete this product?')) {
@@ -70,40 +71,6 @@ export default function SDashboard() {
         }
     };
 
-    const handleAcceptOrder = async (orderId) => {
-        try {
-            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    status: 'confirmed',
-                    orderStatus: 'confirmed'
-                })
-            });
-
-            if (response.ok) {
-                // Update the orders state
-                setOrders(orders.map(order => 
-                    order._id === orderId 
-                        ? { ...order, status: 'confirmed', orderStatus: 'confirmed' }
-                        : order
-                ));
-
-                // Dispatch event for buyer dashboard
-                window.dispatchEvent(new CustomEvent('orderStatusChanged'));
-                
-                alert('Order accepted successfully');
-            } else {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to accept order');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert(error.message || 'Failed to accept order');
-        }
-    };
 
     const handlePaymentVerification = async (orderId, isVerified) => {
         try {
@@ -130,7 +97,6 @@ export default function SDashboard() {
                 throw new Error('Failed to update payment status');
             }
 
-            const data = await response.json();
 
             // If payment is rejected, remove from recent orders
             if (!isVerified) {
