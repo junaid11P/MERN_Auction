@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+#Auction JR Mart Web Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+#Overview
+Auction JR Mart is a full-stack e-commerce platform built with the MERN stack (MongoDB, Express.js, React.js, Node.js) and Multer for image uploading. It allows buyers to browse, cart, and place Cash on Delivery (COD) orders for various products, including fashion, mobile, laptop, and grocery items. Sellers can manage products, view recent orders, and update the order status.
 
-## Available Scripts
+#Features
 
-In the project directory, you can run:
+#Buyer Features:
+View products from various categories (fashion, mobile, laptops, groceries).
+Sign up, log in, and update profiles (email, phone, address).
+Add products to cart and place orders using Cash on Delivery (COD).
+Track orders in real-time.
 
-### `npm start`
+#Seller Features:
+Sign up, log in, and manage product listings (create, update, delete).
+View recent orders from buyers.
+Update order status and provide tracking updates.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+#Technologies Used
+Frontend: React.js
+Backend: Node.js, Express.js
+Database: MongoDB
+Authentication: JWT (JSON Web Tokens)
+File Uploading: Multer
+Payment: Cash on Delivery (COD)
+Version Control: Git/GitHub
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#Setup Instructions
+Prerequisites
+Node.js and npm installed.
+MongoDB running locally or via a cloud service like MongoDB Atlas.
 
-### `npm test`
+#Installation
+Clone the repository:
+git clone https://github.com/junaid11P/auction-jr-mart.git
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#Running frontend:
+cd jr-mart-frontend
+npm install express
+npm start
 
-### `npm run build`
+#Running backend:
+cd jr-mart-backend
+npm start
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#Running Locally
+After setting up, open your browser and navigate to http://localhost:3000 to view the front-end,
+and the back-end will run on http://localhost:3001 (or your configured port).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#Deployment
+For deployment, you can use Heroku or AWS for the backend and Netlify for the frontend. Ensure to set up environment variables on the platform for MongoDB and JWT.
 
-### `npm run eject`
+#Usage
+Buyers: Browse products, create an account, log in, add products to cart, and place COD orders. Track order status in the dashboard.
+Sellers: Sign up, log in, and manage products in the seller dashboard. View orders and update tracking status.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#Contributions
+Contributions are welcome! Feel free to fork the repository and create a pull request.
