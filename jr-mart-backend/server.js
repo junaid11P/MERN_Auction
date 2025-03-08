@@ -15,9 +15,6 @@ app.use(express.static('public'));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/images/payments', express.static(path.join(__dirname, 'public/images/payments')));
 app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
-app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
-app.use('/images/payments', express.static(path.join(__dirname, 'public/images/payments')));
-app.use('/qrcodes', express.static(path.join(__dirname, 'public/qrcodes')));
 
 // Error handling for JSON parsing
 app.use((err, req, res, next) => {
@@ -80,7 +77,6 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/cart', require('./routes/cart'));
-app.use('/api/payment', require('./routes/payment'));
 
 // Global error handling middleware
 app.use((err, req, res, next) => {

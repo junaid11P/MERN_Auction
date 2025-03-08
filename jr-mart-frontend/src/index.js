@@ -15,11 +15,10 @@ import SDashboard from './pages/seller/SDashboard';
 import Cart from './pages/buyer/Cart';
 import BProfile from './pages/buyer/BProfile';
 import SProfile from './pages/seller/SProfile';
-import Checkout from './pages/buyer/checkout';  // Updated import path
+import Checkout from './pages/buyer/checkout';
 import ProtectedBuyerRoute from './components/ProtectedBuyerRoute';
 import ProtectedSellerRoute from './components/ProtectedSellerRoute';
 import Orders from './pages/buyer/Orders';
-import Payment from './pages/buyer/Payment';
 import RecentOrder from './pages/seller/recentorder';
 import TrackOrder from './pages/buyer/TrackOrder';
 import UpdateTracking from './pages/seller/UpdateTracking';
@@ -52,7 +51,6 @@ function App() {
                         <Route path="profile" element={<BProfile />} />
                         <Route path="checkout" element={<Checkout />} />
                         <Route path="orders" element={<Orders />} />
-                        <Route path="payment/:orderId" element={<Payment />} />
                         <Route path="track-order" element={<TrackOrder />} />
                         <Route path="track-order/:orderId" element={<TrackOrder />} />
                     </Route>

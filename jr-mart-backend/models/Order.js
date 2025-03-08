@@ -41,7 +41,7 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['cod', 'online']
+        enum: ['cash'] // Update to only allow cash payment
     },
     paymentStatus: {
         type: String,

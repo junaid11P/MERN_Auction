@@ -32,46 +32,6 @@ export default function RecentOrder() {
         }
     };
 
-    const handleVerifyPayment = async (orderId) => {
-        try {
-            const response = await fetch(`http://localhost:3001/api/orders/${orderId}/verify-payment`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    status: 'payment_verified',
-                    message: 'Payment verified by seller'
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to verify payment');
-            }
-
-            // Update local state and trigger refresh
-            setOrders(orders.map(order => 
-                order._id === orderId 
-                    ? { ...order, status: 'payment_verified', paymentStatus: 'completed' } 
-                    : order
-            ));
-
-            // Notify success
-            alert('Payment verified successfully');
-
-            // Dispatch event for buyer dashboard update
-            window.dispatchEvent(new CustomEvent('orderStatusChanged'));
-            
-            // Refresh orders list
-            fetchOrders();
-        } catch (error) {
-            console.error('Error:', error);
-            alert(error.message || 'Failed to verify payment');
-        }
-    };
-
     if (loading) return <div className="container my-4">Loading...</div>;
     if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
@@ -89,43 +49,24 @@ export default function RecentOrder() {
                                 <div className="mb-3">
                                     <p><strong>Order Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
                                     <p><strong>Total Amount:</strong> ₹{order.totalAmount}</p>
+                                    
+                                    <div className="shipping-details mb-3">
+                                        <h6>Shipping Address</h6>
+                                        <p className="mb-1">{order.shippingAddress}</p>
+                                    </div>
+
                                     <p><strong>Status:</strong> 
                                         <span className={`badge ms-2 ${
                                             order.status === 'pending' ? 'bg-warning' :
-                                            order.status === 'payment_pending' ? 'bg-info' :
-                                            order.status === 'payment_verified' ? 'bg-success' :
+                                            order.status === 'confirmed' ? 'bg-success' :
+                                            order.status === 'shipped' ? 'bg-primary' :
+                                            order.status === 'delivered' ? 'bg-success' :
                                             'bg-secondary'
                                         }`}>
                                             {(order.status || 'pending').toUpperCase()}
                                         </span>
                                     </p>
                                 </div>
-
-                                {order.utrNumber && (
-                                    <div className="payment-details border-top pt-3">
-                                        <h6>Payment Details</h6>
-                                        <p><strong>UTR Number:</strong> {order.utrNumber}</p>
-                                        {order.paymentProof && (
-                                            <div className="mb-3">
-                                                <p><strong>Payment Screenshot:</strong></p>
-                                                <img 
-                                                    src={`http://localhost:3001${order.paymentProof}`}
-                                                    alt="Payment Proof"
-                                                    style={{ maxWidth: '200px' }}
-                                                    className="img-thumbnail"
-                                                />
-                                            </div>
-                                        )}
-                                        {order.status !== 'payment_verified' && (
-                                            <button 
-                                                className="btn btn-success"
-                                                onClick={() => handleVerifyPayment(order._id)}
-                                            >
-                                                Verify Payment
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
                                 <button 
                                     className="btn btn-primary btn-sm"
                                     onClick={() => navigate(`/seller/update-tracking/${order._id}`)}

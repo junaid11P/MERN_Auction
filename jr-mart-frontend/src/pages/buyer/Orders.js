@@ -86,6 +86,23 @@ export default function Orders() {
         }
     };
 
+    const getStatusBadgeClass = (status) => {
+        switch(status) {
+            case 'pending':
+                return 'bg-warning';
+            case 'confirmed':
+                return 'bg-success';
+            case 'shipped':
+                return 'bg-primary';
+            case 'delivered':
+                return 'bg-success';
+            case 'cancelled':
+                return 'bg-danger';
+            default:
+                return 'bg-secondary';
+        }
+    };
+
     if (loading) return <div className="container my-4">Loading...</div>;
     if (error) return <div className="container my-4 alert alert-danger">{error}</div>;
 
@@ -112,14 +129,7 @@ export default function Orders() {
                                     <i className="bi bi-clipboard"></i>
                                 </button>
                             </div>
-                            <span className={`badge ${
-                                order.status === 'payment_verified' ? 'bg-success' :
-                                order.status === 'payment_pending' ? 'bg-info' :
-                                order.status === 'pending' ? 'bg-warning' :
-                                order.status === 'shipped' ? 'bg-primary' :
-                                order.status === 'delivered' ? 'bg-success' :
-                                'bg-danger'
-                            }`}>
+                            <span className={`badge ${getStatusBadgeClass(order.status)}`}>
                                 {(order.status || 'pending').toUpperCase()}
                             </span>
                         </div>
@@ -147,20 +157,7 @@ export default function Orders() {
                                 </div>
                                 <div className="col-md-6 text-md-end">
                                     <p className="mb-1">
-                                        <strong>Payment Method:</strong> {order.paymentMethod.toUpperCase()}
-                                    </p>
-                                    <p className="mb-1">
-                                        <strong>Payment Status:</strong>{' '}
-                                        <span className={`badge ${
-                                            order.status === 'payment_verified' ? 'bg-success' :
-                                            order.status === 'payment_pending' ? 'bg-info' :
-                                            order.paymentStatus === 'completed' ? 'bg-success' :
-                                            'bg-warning'
-                                        }`}>
-                                            {order.status === 'payment_verified' ? 'VERIFIED' :
-                                             order.status === 'payment_pending' ? 'PENDING VERIFICATION' :
-                                             (order.paymentStatus || 'pending').toUpperCase()}
-                                        </span>
+                                        <strong>Payment Method:</strong> Cash on Delivery
                                     </p>
                                     <p className="mb-0">
                                         <strong>Total Amount:</strong> ₹{order.totalAmount}
@@ -172,16 +169,15 @@ export default function Orders() {
                                     <div 
                                         className={`progress-bar ${
                                             order.status === 'cancelled' ? 'bg-danger' :
-                                            order.status === 'payment_verified' ? 'bg-success' :
+                                            order.status === 'confirmed' ? 'bg-success' :
                                             'bg-primary'
                                         }`}
                                         role="progressbar"
                                         style={{ 
                                             width: `${
-                                                order.status === 'pending' ? '20%' :
-                                                order.status === 'payment_pending' ? '40%' :
-                                                order.status === 'payment_verified' ? '60%' :
-                                                order.status === 'shipped' ? '80%' :
+                                                order.status === 'pending' ? '25%' :
+                                                order.status === 'confirmed' ? '50%' :
+                                                order.status === 'shipped' ? '75%' :
                                                 order.status === 'delivered' ? '100%' :
                                                 '100%'
                                             }`

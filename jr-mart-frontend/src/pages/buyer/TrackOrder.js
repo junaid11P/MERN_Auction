@@ -45,6 +45,23 @@ export default function TrackOrder() {
         }
     }, [routeOrderId]);
 
+    const getStatusClass = (status) => {
+        switch(status) {
+            case 'pending':
+                return 'bg-warning';
+            case 'confirmed':
+                return 'bg-success';
+            case 'shipped':
+                return 'bg-primary';
+            case 'delivered':
+                return 'bg-success';
+            case 'cancelled':
+                return 'bg-danger';
+            default:
+                return 'bg-secondary';
+        }
+    };
+
     return (
         <div className="container my-4">
             <h2 className="mb-4">Track Your Order</h2>
@@ -104,7 +121,7 @@ export default function TrackOrder() {
                                 <div className="tracking-timeline mt-4">
                                     {orderDetails.trackingStatus?.map((status, index) => (
                                         <div key={index} className="tracking-item">
-                                            <div className="tracking-status">
+                                            <div className={`tracking-status ${getStatusClass(status.status)}`}>
                                                 {status.status.replace(/_/g, ' ').toUpperCase()}
                                             </div>
                                             <div className="tracking-time">

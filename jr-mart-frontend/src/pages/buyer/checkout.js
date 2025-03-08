@@ -7,7 +7,7 @@ export default function Checkout() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [shippingAddress, setShippingAddress] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cod');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
     const navigate = useNavigate();
     const [totalAmount, setTotalAmount] = useState(0);
 
@@ -124,8 +124,8 @@ export default function Checkout() {
                 shippingAddress: shippingAddress.trim(),
                 totalAmount,
                 paymentMethod,
-                orderStatus: paymentMethod === 'cod' ? 'processing' : 'payment_pending',
-                paymentStatus: paymentMethod === 'cod' ? 'pending' : 'payment_pending'
+                orderStatus: 'processing',
+                paymentStatus: 'pending'
             };
 
             const orderResponse = await fetch('http://localhost:3001/api/orders', {
@@ -143,19 +143,13 @@ export default function Checkout() {
 
             const responseData = await orderResponse.json();
 
-            // Only clear cart for COD orders immediately
-            if (paymentMethod === 'cod') {
-                await fetch(`http://localhost:3001/api/cart/${user._id}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                alert('Order placed successfully! You can pay on delivery.');
-                navigate('/buyer/orders');
-            } else {
-                // For online payment, redirect to payment page without clearing cart
-                navigate(`/buyer/payment/${responseData.order._id}`);
-            }
+            await fetch(`http://localhost:3001/api/cart/${user._id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            alert('Order placed successfully! You can pay on delivery.');
+            navigate('/buyer/orders');
         } catch (error) {
             console.error('Error:', error);
             alert(error.message || 'Failed to place order');
@@ -242,8 +236,7 @@ export default function Checkout() {
                                     value={paymentMethod}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                 >
-                                    <option value="cod">Cash on Delivery</option>
-                                    <option value="online">Online Payment</option>
+                                    <option value="cash">Cash on Delivery</option>
                                 </select>
                             </div>
                             <button 
